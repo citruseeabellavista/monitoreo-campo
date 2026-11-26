@@ -1,0 +1,15 @@
+APP DE CAMPO - Sistema de Monitoreo Fitosanitario - INTA EEA Bella Vista
+=========================================================================
+Esta carpeta es la app que se instala en el celular y FUNCIONA SIN SEÑAL.
+
+1) Edite config.js y pegue la URL del sistema (la que termina en /exec).
+2) Suba TODOS estos archivos a un sitio web estatico con HTTPS
+   (espacio institucional, GitHub Pages, Netlify, Firebase Hosting...).
+3) Abra la direccion en el celular, ingrese con su correo y codigo, e instalela
+   en la pantalla de inicio (Android: "Instalar app"; iPhone: Compartir >
+   Agregar a pantalla de inicio).
+4) Con senal, entre a "Cargar datos" una vez para descargar los lotes.
+
+Para actualizar: reemplace los archivos (conserve su config.js) y cambie
+VERSION en sw.js (campo-v3.1 -> campo-v2).
+Detalle completo: Guia de instalacion, seccion 3.6.

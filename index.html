@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173C2A">
+<title>Monitoreo Fitosanitario</title><link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --v900:#12271D;--v800:#173C2A;--v700:#1E5238;--v500:#2D6A4F;--v300:#74C69D;--v100:#DCEFE2;--v50:#F1F8F3;
+  --t700:#9C3E17;--t600:#C1541F;--t100:#FBE6D8;
+  --papel:#FAF7F0;--panel:#fff;--tinta:#1F2421;--g600:#5C6B66;--g400:#8B968F;--borde:#DFD9C9;
+  --rojo:#B3261E;--amar:#8A5A00;--amar-bg:#FBF0D9;--ok:#1E7A46;
+  --r:12px;--sombra:0 1px 2px rgba(20,30,25,.05),0 4px 14px rgba(20,30,25,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--papel);color:var(--tinta);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,h4{font-family:'Bitter',Georgia,serif;font-weight:700;margin:0 0 .35em;color:var(--v900);line-height:1.2}
+h1{font-size:26px}h2{font-size:20px}h3{font-size:16px}h4{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--v700)}
+a{color:var(--v700)}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.muted{color:var(--g600)}.small{font-size:12.5px}.hide{display:none!important}.center{text-align:center}
+.right{margin-left:auto}.nowrap{white-space:nowrap}
+
+/* ---------- Barra superior ---------- */
+.topbar{background:var(--v900);background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:14px 14px;color:#fff;
+  display:flex;align-items:center;gap:10px;padding:0 14px;height:62px;position:sticky;top:0;z-index:50;border-bottom:3px solid var(--t600)}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
+.brand-mark{width:36px;height:36px;border-radius:9px;background:var(--v500);display:flex;align-items:center;justify-content:center;font-family:'Bitter',serif;font-weight:700;font-size:16px;flex:none}
+.brand-mark img{width:100%;height:100%;object-fit:contain;border-radius:9px;background:#fff}
+.fp h3.grp{margin:22px 0 4px;color:var(--v700);font-family:'Bitter',serif;font-size:17px}
+.vbl{margin-bottom:6px}.vbl .chips{gap:8px}
+.brand-t{line-height:1.15;min-width:0}
+.brand-t .a{font-size:10.5px;letter-spacing:.07em;color:var(--v300);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-t .b{font-family:'Bitter',serif;font-weight:700;font-size:15px;white-space:nowrap}
+.nav{display:flex;gap:2px;margin-left:12px}
+.nav button{background:transparent;border:0;color:#DCEFE2;padding:10px 12px;border-radius:8px;font-size:13.5px;font-weight:500;white-space:nowrap}
+.nav button:hover{background:var(--v800)}.nav button.on{background:var(--v700);color:#fff}
+.dd{position:relative}
+.dd-menu{position:absolute;top:100%;left:0;background:var(--v900);border:1px solid var(--v700);border-radius:10px;padding:6px;min-width:190px;display:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.dd.open .dd-menu{display:block}.dd-menu button{display:block;width:100%;text-align:left}
+.userchip{display:flex;align-items:center;gap:8px;background:var(--v800);border:0;color:#fff;border-radius:22px;padding:4px 12px 4px 4px;font-size:12.5px;max-width:230px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--t600);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+.userchip span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.burger{display:none;background:transparent;border:0;color:#fff;font-size:24px;padding:4px 8px}
+.userbox{position:relative}
+.usermenu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;color:var(--tinta);border:1px solid var(--borde);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;min-width:230px;display:none;z-index:60}
+.usermenu.open{display:block}.usermenu .who{padding:8px 10px;border-bottom:1px solid var(--borde);margin-bottom:6px}
+.usermenu button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 10px;border-radius:8px;font-size:14px}.usermenu button:hover{background:var(--v50)}
+@media(max-width:900px){
+  .burger{display:block}
+  .nav{position:fixed;top:62px;left:0;right:0;background:var(--v900);flex-direction:column;padding:8px 10px 14px;margin:0;display:none;border-bottom:3px solid var(--t600);max-height:calc(100vh - 62px);overflow:auto}
+  .nav.open{display:flex}.nav button{text-align:left;padding:13px 12px;font-size:15px}
+  .dd-menu{position:static;display:block;border:0;background:transparent;padding:0 0 0 14px;box-shadow:none}
+  .dd>button{pointer-events:none;opacity:.65;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  .userchip span.n{display:none}.userchip{padding:4px}
+}
+
+/* ---------- Contenedor ---------- */
+main{max-width:1120px;margin:0 auto;padding:22px 16px 90px}
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t600);margin-bottom:3px}
+.hd{margin-bottom:18px}.hd .lead{color:var(--g600);margin:6px 0 0;max-width:680px}
+.hd-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sombra)}
+.card+.card{margin-top:14px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:820px){.g3,.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.stack>*+*{margin-top:12px}
+.sep{height:1px;background:var(--borde);margin:14px 0}
+
+/* ---------- Botones ---------- */
+.btn{border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;justify-content:center;min-height:44px;transition:background .12s,transform .05s}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.pri{background:var(--t600);color:#fff}.btn.pri:hover{background:var(--t700)}
+.btn.sec{background:var(--v100);color:var(--v800)}.btn.sec:hover{background:#cfe8da}
+.btn.out{background:#fff;border:1px solid var(--borde);color:var(--tinta)}.btn.out:hover{background:var(--v50)}
+.btn.dan{background:#fff;border:1px solid #E6B8B4;color:var(--rojo)}.btn.dan:hover{background:#FBEAE9}
+.btn.sm{padding:6px 12px;min-height:34px;font-size:12.8px;border-radius:8px}
+.btn.blk{width:100%}.btn.lg{min-height:52px;font-size:16px}
+.linkbtn{background:none;border:0;color:var(--v700);text-decoration:underline;padding:0;font-size:inherit}
+
+/* ---------- Formularios ---------- */
+.f{margin-bottom:12px}.f label{display:block;font-size:12.5px;color:var(--g600);margin-bottom:5px;font-weight:600}
+.f .ay{font-size:12px;color:var(--g400);margin-top:4px}
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=search],input[type=tel],select,textarea{width:100%;border:1px solid var(--borde);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--tinta);min-height:44px}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--v300);border-color:var(--v500)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fr3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:620px){.fr,.fr3{grid-template-columns:1fr}}
+.chk{display:flex;gap:10px;align-items:center;font-size:14px;margin:6px 0}.chk input{width:20px;height:20px;min-height:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--borde);background:#fff;border-radius:22px;padding:7px 14px;font-size:13.5px;font-weight:500;color:var(--g600);min-height:36px}
+.chip.on{background:var(--v700);border-color:var(--v700);color:#fff}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600}
+.pill.ok{background:var(--v100);color:var(--v700)}.pill.warn{background:var(--amar-bg);color:var(--amar)}.pill.off{background:#EEE;color:#777}.pill.info{background:var(--t100);color:var(--t700)}.pill.dan{background:#FBEAE9;color:var(--rojo)}.pill.bad{background:#FBEAE9;color:var(--rojo)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* ---------- Tablas ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--g600);border-bottom:1px solid var(--borde);padding:8px 10px;white-space:nowrap}
+.tbl td{padding:10px;border-bottom:1px solid #EFEAD9;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}.tbl tr.clic{cursor:pointer}.tbl tr.clic:hover td{background:var(--v50)}
+.empty{padding:30px 10px;text-align:center;color:var(--g600)}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:9px 16px;border-radius:22px;border:1px solid var(--borde);background:#fff;font-size:13.5px;font-weight:600;color:var(--g600);min-height:40px}
+.tab.on{background:var(--v700);border-color:var(--v700);color:#fff}
+
+/* ---------- KPIs, banners ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--v50);border-radius:var(--r);padding:14px 16px}.kpi.acc{background:var(--t100)}
+.kpi .n{font-family:'Bitter',serif;font-size:28px;font-weight:700;color:var(--v800);line-height:1.1}.kpi.acc .n{color:var(--t700)}
+.kpi .l{font-size:12px;color:var(--g600);margin-top:2px}
+.banner{border-radius:10px;padding:11px 14px;font-size:13.5px;margin-bottom:14px;border:1px solid}
+.banner.warn{background:var(--amar-bg);border-color:#EBD49A;color:var(--amar)}.banner.info{background:var(--v50);border-color:var(--v300);color:var(--v800)}
+.banner.bad{background:#FBEAE9;border-color:#F0B8B4;color:var(--rojo)}.banner.ok{background:var(--v100);border-color:var(--v300);color:var(--v800)}
+
+/* ---------- Modal / toast ---------- */
+.mov{position:fixed;inset:0;background:rgba(18,39,29,.55);display:flex;align-items:flex-start;justify-content:center;z-index:100;padding:16px;overflow:auto}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:520px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+.modal.w{max-width:860px}.modal.xw{max-width:1000px}
+.mh{padding:16px 20px 4px;display:flex;align-items:flex-start;gap:10px}.mh h3{margin:0;font-size:18px;flex:1}
+.mx{background:none;border:0;font-size:26px;line-height:1;color:var(--g600);padding:0 4px}
+.mb{padding:10px 20px 16px;overflow:auto;-webkit-overflow-scrolling:touch}
+.mf{padding:12px 20px 18px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--borde)}
+.toasts{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:300;width:calc(100% - 28px);max-width:460px;pointer-events:none}
+.toast{background:var(--v900);color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:up .2s}
+.toast.bad{background:var(--rojo)}.toast.ok{background:var(--ok)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--v100);border-top-color:var(--v700);animation:sp .8s linear infinite;margin:20px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.boot{padding:80px 20px;text-align:center;color:var(--g600)}
+
+/* ---------- Login ---------- */
+.login{max-width:420px;margin:7vh auto 0;padding:0 16px}
+.login .card{padding:26px 24px}
+.login .logo{width:54px;height:54px;border-radius:14px;background:var(--v700);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bitter',serif;font-weight:700;font-size:22px;margin:0 auto 12px}
+.codein{letter-spacing:10px;font-size:28px;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.demo{border:1px dashed var(--t600);background:var(--t100);border-radius:12px;padding:12px 14px;margin-top:16px;font-size:13px}
+
+/* ---------- Inicio ---------- */
+.tile{display:block;text-align:left;background:#fff;border:1px solid var(--borde);border-radius:var(--r);padding:18px;box-shadow:var(--sombra);transition:transform .12s,box-shadow .12s;width:100%}
+.tile:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(20,30,25,.1)}
+.tile .ic{width:44px;height:44px;border-radius:11px;background:var(--v100);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
+.tile.acc .ic{background:var(--t100)}.tile h3{margin-bottom:3px}.tile p{margin:0;color:var(--g600);font-size:13px}
+.prog{height:8px;background:var(--borde);border-radius:8px;overflow:hidden}.prog i{display:block;height:100%;background:var(--t600);transition:width .3s}
+
+/* ---------- Carga ---------- */
+.lotecard{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:#fff;border:1px solid var(--borde);border-radius:12px;padding:12px 14px;min-height:64px}
+.lotecard:hover{background:var(--v50);border-color:var(--v300)}
+.lotecard .ic{width:42px;height:42px;border-radius:10px;background:var(--v100);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
+.ptile{border:2px solid var(--borde);background:#fff;border-radius:14px;min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:20px;position:relative}
+.ptile small{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:500;color:var(--g600);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ptile.pend:hover{border-color:var(--t600);background:var(--t100)}
+.ptile.done{background:var(--v100);border-color:var(--v300);color:var(--v700)}
+.ptile.queue{background:var(--amar-bg);border-color:#EBD49A;color:var(--amar)}
+.ptile.done::after{content:'✓';position:absolute;top:3px;right:7px;font-size:13px}
+.fp h4{margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--borde)}.fp h4 small{text-transform:none;letter-spacing:0;font-weight:500;color:var(--g400);font-size:12px;margin-left:6px}
+.mt{border-collapse:separate;border-spacing:6px;margin:0 auto 0 -6px}
+.mt th{font-size:11.5px;color:var(--g600);font-weight:600;padding:2px 4px}.mt td.rl{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--g600);font-size:13px;padding-right:6px}
+.tg{min-width:56px;height:46px;border-radius:12px;border:2px solid var(--borde);background:#fff;font-size:15px;font-weight:700;color:#C5CCC8}
+.tg.on{background:var(--t600);border-color:var(--t600);color:#fff}
+.tg.big{min-width:100%;height:54px;font-size:15px;color:var(--g600)}.tg.big.on{color:#fff}
+.stp{display:flex;align-items:center;gap:0;border:1px solid var(--borde);border-radius:12px;overflow:hidden;background:#fff}
+.stp button{width:50px;height:46px;border:0;background:var(--v50);font-size:22px;color:var(--v700);font-weight:700}
+.stp input{border:0;text-align:center;font-size:18px;font-weight:600;min-height:46px;border-radius:0;padding:0;width:100%;min-width:40px}
+.savebar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--papel) 24%);padding:18px 0 8px;margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+.savebar .btn{flex:1 1 140px}
+
+/* ---------- Análisis / gráficos ---------- */
+.bars .b{display:grid;grid-template-columns:minmax(120px,210px) 1fr 54px;gap:10px;align-items:center;margin:7px 0;font-size:13.5px}
+.bars .t{height:16px;background:#EEF1EE;border-radius:8px;overflow:hidden}.bars .t i{display:block;height:100%;border-radius:8px;transition:width .4s}
+.bars .v{font-weight:700;text-align:right}
+@media(max-width:560px){.bars .b{grid-template-columns:1fr 1fr 48px}.bars .b span:first-child{grid-column:1/-1}}
+table.heat{border-collapse:separate;border-spacing:2px;font-size:12px;width:100%}
+.heat th{background:var(--v800);color:#fff;padding:6px 4px;font-weight:600;font-size:11.5px;position:sticky;top:0}
+.heat td.l{background:var(--v50);font-weight:600;padding:6px 8px;white-space:nowrap;text-align:left}
+.heat td.c{text-align:center;padding:7px 4px;font-weight:600;min-width:42px;border-radius:4px}
+.heat td.c.clic{cursor:pointer}
+.scale{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--g600);margin:8px 0}
+.scale i{display:block;height:10px;width:170px;border-radius:5px;background:linear-gradient(90deg,#E8F5E9,#B8DE8C,#F7C952,#E87A3A,#B3261E)}
+.chart svg{width:100%;height:auto;display:block}
+.map{height:380px;border-radius:12px;border:1px solid var(--borde);overflow:hidden;background:#dde7e0;z-index:1}.map.s{height:300px}.map.l{height:520px}
+@media(max-width:620px){.map{height:320px}.map.l{height:420px}}
+.leaflet-container{font-family:inherit}
+.lg{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.lg button{display:flex;align-items:center;gap:6px;border:1px solid var(--borde);background:#fff;border-radius:18px;padding:4px 10px;font-size:12px;min-height:30px}
+.lg button.off{opacity:.4}.lg i{width:10px;height:10px;border-radius:50%;display:block}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}
+.filters .f{margin:0}
+details.acc summary{cursor:pointer;font-weight:600;padding:8px 0}
+.footer-note{margin-top:34px;padding-top:14px;border-top:1px solid var(--borde);color:var(--g400);font-size:12px}
+@media print{.topbar,.savebar,.btn,.tabs{display:none!important}body{background:#fff}main{padding:0}}
+
+/* ---- Estado de conexión (trabajo sin señal) ---- */
+.netpill{border:0;border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;background:#FBF0D9;color:#8A5A00;white-space:nowrap;margin-left:auto;margin-right:8px}
+.netpill.off{background:#FBEAE9;color:#B3261E}.netpill:empty{display:none}
+.plist .it{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #EFEAD9;flex-wrap:wrap}
+.plist .it:last-child{border-bottom:0}.plist .er{color:#B3261E;font-size:12.5px}
+
+/* Celular: el aviso de conexión no debe tapar el nombre del sistema */
+.brand{min-width:0;flex:0 1 auto}.brand-t{min-width:0;overflow:hidden}.brand-t .b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){.brand-t{display:none}.netpill{padding:5px 9px;font-size:11px;margin-right:4px}}
+
+</style>
+
+<script>
+/* Si algo falla al iniciar, se muestra el motivo (nunca una página en blanco). */
+window.addEventListener('error', function (e) {
+  var a = document.getElementById('app');
+  if (a && a.querySelector('.boot')) a.innerHTML = '<div style="padding:24px;font:14px monospace;white-space:pre-wrap;color:#B3261E">No se pudo iniciar el sistema.\n\n' + String(e.message || '') + '</div>';
+});
+</script>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="app"><div class="boot"><div class="spin"></div>Cargando el sistema…</div></div>
+<noscript><div style="padding:24px">Este sistema necesita JavaScript habilitado.</div></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+'use strict';
+/* ================== NÚCLEO DE LA APLICACIÓN (cliente) ================== */
+const $ = function (s, r) { return (r || document).querySelector(s); };
+const $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+const esc = function (t) {
+  return String(t === null || t === undefined ? '' : t).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+};
+const App = { token: null, ses: null, vista: null, cat: null, jer: { monitoreador: 1, admin: 2, superadmin: 3 } };
+const Vistas = {};
+
+const Store = {
+  mem: {},
+  get: function (k) { try { return localStorage.getItem(k); } catch (e) { return this.mem[k] || null; } },
+  set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { this.mem[k] = v; } },
+  del: function (k) { try { localStorage.removeItem(k); } catch (e) { } delete this.mem[k]; }
+};
+
+/* ---------- Fechas y formatos ---------- */
+function hoyLocal() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function fmtFecha(iso) { return /^\d{4}-\d{2}-\d{2}/.test(iso || '') ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : (iso || ''); }
+function fmtFechaHora(s) { return s ? fmtFecha(s.slice(0, 10)) + ' ' + s.slice(11, 16) : ''; }
+function iniciales(n) { return String(n || '?').split(/\s+/).slice(0, 2).map(function (x) { return x.charAt(0); }).join('').toUpperCase(); }
+function uid() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+function rolTxt(r) { return { superadmin: 'Super Administrador', admin: 'Administrador', monitoreador: 'Monitoreador' }[r] || r; }
+function tieneRol(min) { return App.ses && App.jer[App.ses.rol] >= App.jer[min]; }
+function fmtPct(v) { return v === null || v === undefined ? '–' : (Math.round(v * 10) / 10) + '%'; }
+
+/* ---------- Estado de la conexión ---------- */
+const Red = {
+  enLinea: function () { return navigator.onLine !== false && !window.__OFFLINE__; },
+  remoto: function () { return !!(window.APP_CONFIG && window.APP_CONFIG.apiUrl); },
+  pendientes: function () {
+    const em = App.ses ? App.ses.email : null;
+    return Outbox.lista().filter(function (x) { return !em || x.owner === em; });
+  },
+  pintar: function () {
+    const el = $('#netpill'); if (!el) return;
+    const n = this.pendientes().length, off = !this.enLinea();
+    el.className = 'netpill' + (off ? ' off' : '');
+    el.textContent = off ? '📵 Sin conexión' + (n ? ' · ' + n + ' pendiente' + (n > 1 ? 's' : '') : '') : (n ? '⏳ ' + n + ' por enviar' : '');
+    el.title = off ? 'Lo que cargue se guarda en este celular y se envía solo cuando vuelva la señal.' : (n ? 'Toque para enviar ahora.' : '');
+  }
+};
+window.addEventListener('online', function () { Red.pintar(); });
+window.addEventListener('offline', function () { Red.pintar(); });
+
+/* ---------- Comunicación con el servidor ---------- */
+function limpiarMsg(m) { return String(m || '').replace(/^(Error|Exception): ?/, ''); }
+// Interpreta {ok,data|error}: devuelve los datos o lanza un error con "tipo".
+function resolverRes(res) {
+  if (res && res.ok) return res.data;
+  throw { tipo: res && res.codigo === 'SESION' ? 'sesion' : (res && res.interno ? 'interno' : 'negocio'),
+    message: (res && res.error) || 'Error desconocido', detalle: res && res.detalle, codigo: res && res.codigo };
+}
+// App de campo (instalada en el celular): habla con el servidor por POST.
+function apiRemoto(nombre, args) {
+  const url = String(window.APP_CONFIG.apiUrl || '');
+  if (!/^https?:\/\//.test(url)) return Promise.reject({ tipo: 'interno', message: 'Falta configurar la dirección del sistema en el archivo config.js.' });
+  if (!Red.enLinea()) return Promise.reject({ tipo: 'red', message: 'Sin conexión.' });
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const corte = setTimeout(function () { if (ctl) ctl.abort(); }, 45000);
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow',
+    body: JSON.stringify({ fn: nombre, args: args }), signal: ctl ? ctl.signal : undefined })
+    .then(function (r) { return r.text(); })
+    .then(function (txt) {
+      clearTimeout(corte);
+      let res; try { res = JSON.parse(txt); } catch (e) { throw { tipo: 'interno', message: 'El servidor no respondió como se esperaba. Revise la dirección en config.js y que la publicación esté como «Cualquier persona».' }; }
+      return resolverRes(res);
+    })
+    .catch(function (e) { clearTimeout(corte); if (e && e.tipo) throw e; throw { tipo: 'red', message: 'Sin conexión con el servidor.' }; });
+}
+function api(nombre) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  if (Red.remoto()) return apiRemoto(nombre, args);
+  return new Promise(function (resolve, reject) {
+    if (!Red.enLinea()) { reject({ tipo: 'red', message: 'Sin conexión.' }); return; }
+    if (!(window.google && google.script && google.script.run)) { reject({ tipo: 'red', message: 'No se pudo conectar con el servidor.' }); return; }
+    const run = google.script.run
+      .withSuccessHandler(function (res) { try { resolve(resolverRes(res)); } catch (e) { reject(e); } })
+      .withFailureHandler(function (err) { reject({ tipo: 'red', message: limpiarMsg(err && err.message) || 'Sin conexión con el servidor.' }); });
+    run[nombre].apply(run, args);
+  });
+}
+// Llamada autenticada: agrega el token y maneja sesiones vencidas.
+function apiA(nombre) {
+  const args = [nombre, App.token].concat(Array.prototype.slice.call(arguments, 1));
+  return api.apply(null, args).catch(function (e) {
+    if (e.tipo === 'sesion') { Auth.salir(e.message + ' Lo que tenga pendiente de enviar se conserva en este celular.', true); e.silencio = true; }
+    throw e;
+  });
+}
+/* ---------- Datos guardados en el dispositivo (para trabajar sin señal) ---------- */
+const Sesion = {
+  leer: function () { try { return JSON.parse(Store.get('inta_ses') || 'null'); } catch (e) { return null; } },
+  guardar: function (s) { Store.set('inta_ses', JSON.stringify(s)); },
+  borrar: function () { Store.del('inta_ses'); }
+};
+const Catalogo = {
+  // Con señal baja y guarda los lotes/monitoreadores; sin señal usa lo último descargado.
+  async obtener() {
+    if (Red.enLinea()) {
+      try { const c = await apiA('apiCatalogoCarga'); c.bajado = Date.now(); Store.set('inta_cat', JSON.stringify(c)); return c; }
+      catch (e) { if (e.tipo !== 'red') throw e; }
+    }
+    let c = null; try { c = JSON.parse(Store.get('inta_cat') || 'null'); } catch (e) { }
+    if (!c) throw { tipo: 'red', message: 'Todavía no descargó la lista de lotes. Abra la app una vez con señal (wifi o datos) para dejarla lista para el campo.' };
+    c.sinConexion = true; c.hoy = hoyLocal(); return c;
+  }
+};
+const Snap = {
+  leer: function (id) { try { return JSON.parse(Store.get('inta_snap_' + id) || 'null'); } catch (e) { return null; } },
+  guardar: function (id, v) { Store.set('inta_snap_' + id, JSON.stringify(v)); }
+};
+// Monitoreos iniciados SIN señal: viven en el celular hasta que se envía la primera planta.
+const MonLocal = {
+  key: 'inta_monl',
+  todo: function () { try { return JSON.parse(Store.get(this.key) || '{}'); } catch (e) { return {}; } },
+  leer: function (id) { return this.todo()[id] || null; },
+  guardar: function (m) { const t = this.todo(); t[m.MonitoreoID] = m; Store.set(this.key, JSON.stringify(t)); },
+  quitar: function (id) { const t = this.todo(); delete t[id]; Store.set(this.key, JSON.stringify(t)); },
+  lista: function () { const t = this.todo(); return Object.keys(t).map(function (k) { return t[k]; }); },
+  // Mismo cálculo que hace el servidor, para que ambos coincidan.
+  id: function (loteId, fecha) { return 'MON-' + fecha.replace(/-/g, '') + '-' + String(loteId).replace('LOT-', ''); }
+};
+// Permite instalar la app de campo con un toque (Android/Chrome).
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__instalar = e; });
+
+function errMsg(e) {
+  if (e && e.silencio) return null;
+  if (e && e.tipo === 'interno') return e.message + (e.detalle ? ' (' + e.detalle + ')' : '');
+  return (e && e.message) || 'Ocurrió un error.';
+}
+function falla(e) { const m = errMsg(e); if (m) UI.toast(m, 'bad'); }
+
+/* ---------- Componentes de interfaz ---------- */
+const UI = {
+  toast: function (msg, tipo) {
+    let box = $('#toasts');
+    if (!box) { box = document.createElement('div'); box.id = 'toasts'; box.className = 'toasts'; document.body.appendChild(box); }
+    const t = document.createElement('div'); t.className = 'toast ' + (tipo || ''); t.textContent = msg; box.appendChild(t);
+    setTimeout(function () { t.remove(); }, tipo === 'bad' ? 6000 : 3500);
+  },
+  modal: function (o) {
+    const ov = document.createElement('div'); ov.className = 'mov';
+    ov.innerHTML = '<div class="modal ' + (o.ancho || '') + '" role="dialog" aria-modal="true"><div class="mh"><h3>' + esc(o.titulo || '') + '</h3>' +
+      (o.cerrable === false ? '' : '<button class="mx" aria-label="Cerrar">×</button>') + '</div><div class="mb"></div>' +
+      (o.botones && o.botones.length ? '<div class="mf"></div>' : '') + '</div>';
+    const ctl = { el: ov, body: $('.mb', ov), q: function (s) { return $(s, ov); }, qa: function (s) { return $$(s, ov); },
+      cerrar: function () { if (ov.parentNode) ov.remove(); if (o.onClose) o.onClose(); },
+      titulo: function (t) { $('.mh h3', ov).textContent = t; } };
+    ctl.body.innerHTML = o.html || '';
+    const mx = $('.mx', ov); if (mx) mx.onclick = ctl.cerrar;
+    if (o.botones) {
+      const mf = $('.mf', ov);
+      o.botones.forEach(function (b) {
+        const bt = document.createElement('button'); bt.className = 'btn ' + (b.cls || 'out'); bt.textContent = b.txt; mf.appendChild(bt);
+        bt.onclick = async function () {
+          if (bt.disabled) return; bt.disabled = true;
+          try { const r = b.fn ? await b.fn(ctl) : undefined; if (r !== false && b.cierra !== false) ctl.cerrar(); }
+          finally { bt.disabled = false; }
+        };
+      });
+    }
+    ov.addEventListener('mousedown', function (e) { if (e.target === ov && o.cerrable !== false) ctl.cerrar(); });
+    document.body.appendChild(ov);
+    if (o.onOpen) o.onOpen(ctl);
+    return ctl;
+  },
+  confirmar: function (msg, o) {
+    o = o || {};
+    return new Promise(function (resolve) {
+      UI.modal({ titulo: o.titulo || 'Confirmar', html: '<p>' + esc(msg).replace(/\n/g, '<br>') + '</p>', cerrable: true,
+        onClose: function () { resolve(false); },
+        botones: [{ txt: o.no || 'Cancelar', cls: 'out' },
+          { txt: o.si || 'Aceptar', cls: o.peligro ? 'dan' : 'pri', fn: function () { resolve(true); return true; }, cierra: true }] });
+    });
+  },
+  cargando: function (txt) { return '<div class="boot"><div class="spin"></div>' + esc(txt || 'Cargando…') + '</div>'; },
+  vacio: function (txt) { return '<div class="empty">' + esc(txt) + '</div>'; }
+};
+
+// Lee todos los campos con atributo name dentro de un contenedor.
+function leerForm(el) {
+  const o = {};
+  $$('[name]', el).forEach(function (i) {
+    if (i.type === 'checkbox') o[i.name] = i.checked;
+    else o[i.name] = i.value;
+  });
+  return o;
+}
+function opcionesSel(lista, valor, vacio, campo) {
+  return (vacio !== undefined ? '<option value="">' + esc(vacio) + '</option>' : '') +
+    lista.map(function (x) { return '<option value="' + esc(x.ID) + '"' + (String(x.ID) === String(valor) ? ' selected' : '') + '>' + esc(x[campo || 'Nombre']) + '</option>'; }).join('');
+}
+function descargarBase64(nombre, mime, b64) {
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u], { type: mime }));
+  const a = document.createElement('a'); a.href = url; a.download = nombre; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+}
+async function bajarArchivo(id) {
+  try {
+    UI.toast('Preparando archivo…');
+    const f = await apiA('apiObtenerArchivo', id);
+    descargarBase64(f.nombre, f.mime, f.base64);
+  } catch (e) { falla(e); }
+}
+function enviarArchivoPorMail(id) {
+  const c = UI.modal({ titulo: 'Enviar por correo', html: '<div class="f"><label>Correo del destinatario</label><input type="email" name="correo" placeholder="persona@inta.gob.ar"></div>',
+    botones: [{ txt: 'Cancelar' }, { txt: 'Enviar', cls: 'pri', cierra: false, fn: async function (ctl) {
+      try { await apiA('apiEnviarArchivo', id, leerForm(ctl.body).correo); UI.toast('Correo enviado.', 'ok'); ctl.cerrar(); } catch (e) { falla(e); }
+    } }] });
+  return c;
+}
+
+/* ---------- Colores y gráficos ---------- */
+const Color = {
+  stops: [[0, [232, 245, 233]], [25, [184, 222, 140]], [50, [247, 201, 82]], [75, [232, 122, 58]], [100, [179, 38, 30]]],
+  escala: function (p) {
+    p = Math.max(0, Math.min(100, Number(p) || 0));
+    for (let i = 1; i < this.stops.length; i++) {
+      if (p <= this.stops[i][0]) {
+        const a = this.stops[i - 1], b = this.stops[i], t = (p - a[0]) / (b[0] - a[0]);
+        return 'rgb(' + [0, 1, 2].map(function (k) { return Math.round(a[1][k] + (b[1][k] - a[1][k]) * t); }).join(',') + ')';
+      }
+    }
+    return '#B3261E';
+  },
+  texto: function (p) { return p >= 60 ? '#fff' : '#1F2421'; },
+  paleta: ['#C1541F', '#1E5238', '#E0A92B', '#2D6A4F', '#9C3E17', '#74C69D', '#5B6FB5', '#B3261E', '#8B968F', '#7A4B94', '#0F8B8D']
+};
+
+const Graf = {
+  barras: function (items) {
+    return '<div class="bars">' + items.map(function (it) {
+      const v = it.pct === null || it.pct === undefined ? 0 : it.pct;
+      return '<div class="b"><span>' + esc(it.label) + '</span><div class="t"><i style="width:' + Math.max(v, v > 0 ? 1.5 : 0) + '%;background:' + Color.escala(v) + '"></i></div><span class="v">' + fmtPct(it.pct) + '</span></div>';
+    }).join('') + '</div>';
+  },
+  calor: function (cabeceras, filas, o) {
+    o = o || {};
+    let h = '<div class="tw"><table class="heat"><thead><tr><th></th>' + cabeceras.map(function (c) { return '<th title="' + esc(c.titulo || c.txt || c) + '">' + esc(c.txt || c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    filas.forEach(function (f, i) {
+      h += '<tr><td class="l">' + esc(f.label) + '</td>' + f.vals.map(function (v, j) {
+        if (v === null || v === undefined) return '<td class="c" style="background:#EEE;color:#888">–</td>';
+        return '<td class="c' + (o.clic ? ' clic' : '') + '" data-i="' + i + '" data-j="' + j + '" title="' + esc(f.label) + ' · ' + esc((cabeceras[j].titulo || cabeceras[j].txt || cabeceras[j])) + ': ' + Math.round(v * 10) / 10 + '%" style="background:' + Color.escala(v) + ';color:' + Color.texto(v) + '">' + Math.round(v) + '</td>';
+      }).join('') + '</tr>';
+    });
+    return h + '</tbody></table></div><div class="scale"><span>0 %</span><i></i><span>100 %</span></div>';
+  },
+  lineas: function (serie, cats, activos) {
+    if (!serie.length) return UI.vacio('Sin datos para graficar.');
+    const W = 640, H = 240, ml = 38, mr = 14, mt = 12, mb = 34, n = serie.length;
+    const visibles = cats.filter(function (c) { return activos.indexOf(c.id) >= 0; });
+    let max = 10;
+    serie.forEach(function (s) { visibles.forEach(function (c) { if (s.vals[c.id] > max) max = s.vals[c.id]; }); });
+    max = Math.min(100, Math.ceil(max / 10) * 10);
+    const x = function (i) { return n === 1 ? ml + (W - ml - mr) / 2 : ml + i * (W - ml - mr) / (n - 1); };
+    const y = function (v) { return mt + (H - mt - mb) * (1 - v / max); };
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Evolución de la incidencia">';
+    for (let g = 0; g <= 4; g++) {
+      const v = max * g / 4, yy = y(v);
+      s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E5E1D3"/><text x="' + (ml - 6) + '" y="' + (yy + 4) + '" font-size="11" text-anchor="end" fill="#5C6B66">' + Math.round(v) + '%</text>';
+    }
+    const paso = Math.ceil(n / 7);
+    serie.forEach(function (p, i) {
+      if (i % paso === 0 || i === n - 1) s += '<text x="' + x(i) + '" y="' + (H - 12) + '" font-size="11" text-anchor="middle" fill="#5C6B66">' + fmtFecha(p.fecha).slice(0, 5) + '</text>';
+    });
+    visibles.forEach(function (c) {
+      const col = Color.paleta[cats.indexOf(c) % Color.paleta.length];
+      const pts = serie.map(function (p, i) { return p.vals[c.id] === null ? null : [x(i), y(p.vals[c.id]), p.vals[c.id], p.fecha]; }).filter(Boolean);
+      if (pts.length > 1) s += '<polyline fill="none" stroke="' + col + '" stroke-width="2.5" stroke-linejoin="round" points="' + pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>';
+      pts.forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="' + col + '"><title>' + esc(c.nombre) + ' · ' + fmtFecha(p[3]) + ': ' + p[2] + '%</title></circle>'; });
+    });
+    return s + '</svg>';
+  }
+};
+
+/* ---------- Mapas (Leaflet + imagen satelital) ---------- */
+const CENTRO_BV = [-28.5058, -59.0524];
+const Mapa = {
+  ok: function () { return typeof L !== 'undefined'; },
+  crear: function (el, centro, zoom) {
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagen © Esri' });
+    const calles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    const m = L.map(el, { center: centro || CENTRO_BV, zoom: zoom || 12, layers: [sat] });
+    L.control.layers({ 'Satélite': sat, 'Calles': calles }, null, { collapsed: true }).addTo(m);
+    setTimeout(function () { try { m.invalidateSize(); } catch (e) { } }, 200);
+    return m;
+  },
+  sinMapa: function () { return '<div class="banner warn">No se pudo cargar el mapa (sin conexión a internet). Puede seguir usando las coordenadas y los botones de Google Earth.</div>'; },
+  earth: function (lat, lng) { return 'https://earth.google.com/web/@' + lat + ',' + lng + ',50a,700d,35y,0h,0t,0r'; },
+  gmaps: function (lat, lng) { return 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng; },
+  gmapsSat: function (lat, lng) { return 'https://www.google.com/maps/@' + lat + ',' + lng + ',18z/data=!3m1!1e3'; },
+  // Acepta "-28.50, -59.05", "-28.5 -59.05" o un enlace de Google Maps con @lat,lng
+  parsear: function (txt) {
+    txt = String(txt || '').trim();
+    let m = /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/.exec(txt) || /(-?\d{1,2}(?:[.,]\d+)?)\s*[,; ]\s*(-?\d{1,3}(?:[.,]\d+)?)/.exec(txt);
+    if (!m) return null;
+    const la = parseFloat(m[1].replace(',', '.')), lo = parseFloat(m[2].replace(',', '.'));
+    if (isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return null;
+    return [la, lo];
+  }
+};
+
+/* ---------- Navegación ---------- */
+const NAV = [
+  { id: 'home', txt: 'Inicio', rol: 'monitoreador' },
+  { id: 'carga', txt: 'Cargar datos', rol: 'monitoreador' },
+  { id: 'monitoreos', txt: 'Monitoreos', rol: 'admin' },
+  { id: 'alertas', txt: '⚠ Alertas', rol: 'admin' },
+  { id: 'analisis', txt: 'Análisis', rol: 'admin' },
+  { id: 'informes', txt: 'Informes', rol: 'admin' },
+  { grupo: 'Administración', rol: 'admin', items: [
+    { id: 'lotes', txt: 'Lotes y mapa' }, { id: 'sectores', txt: 'Sectores' }, { id: 'monitoreadores', txt: 'Monitoreadores' },
+    { id: 'cultivos', txt: 'Cultivos' }, { id: 'protocolo', txt: 'Protocolo de monitoreo' }, { id: 'plagas', txt: 'Plagas y enfermedades' },
+    { id: 'usuarios', txt: 'Usuarios' }, { id: 'sistema', txt: 'Sistema, respaldos y bitácora', rol: 'superadmin' }] }
+];
+const Nav = {
+  html: function () {
+    const itemOk = function (i) { return Vistas[i.id] && (!i.rol || tieneRol(i.rol)); };
+    return NAV.filter(function (n) { return tieneRol(n.rol) && (n.grupo ? n.items.some(itemOk) : Vistas[n.id]); }).map(function (n) {
+      if (n.grupo) return '<div class="dd"><button data-dd="1">' + esc(n.grupo) + ' ▾</button><div class="dd-menu">' +
+        n.items.filter(itemOk).map(function (i) { return '<button data-ir="' + i.id + '">' + esc(i.txt) + '</button>'; }).join('') + '</div></div>';
+      return '<button data-ir="' + n.id + '">' + esc(n.txt) + '</button>';
+    }).join('');
+  },
+  ir: function (id, params) {
+    const prev = Vistas[App.vista];
+    if (prev && prev.destruir) { try { prev.destruir(); } catch (e) { } }
+    const v = Vistas[id];
+    if (!v) { UI.toast('Pantalla no disponible', 'bad'); return; }
+    App.vista = id;
+    $$('#nav [data-ir]').forEach(function (b) { b.classList.toggle('on', b.dataset.ir === id); });
+    $$('#nav .dd').forEach(function (d) { d.classList.remove('open'); d.firstChild.classList.toggle('on', !!d.querySelector('.on')); });
+    $('#nav').classList.remove('open');
+    const el = $('#vista'); el.innerHTML = ''; window.scrollTo(0, 0);
+    try { v.render(el, params || {}); } catch (e) { mostrarFalla(e); }
+  }
+};
+
+function shell() {
+  const s = App.ses;
+  $('#app').innerHTML =
+    '<header class="topbar"><button class="burger" id="burger" aria-label="Menú">☰</button>' +
+    '<div class="brand" data-ir="home"><div class="brand-mark">' + (/^https:\/\//i.test(s.logo || '') ? '<img src="' + esc(s.logo) + '" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(\'IB\')">' : 'IB') + '</div><div class="brand-t"><div class="a">' + esc(s.institucion || 'INTA') + '</div><div class="b">Monitoreo Fitosanitario</div></div></div>' +
+    '<nav class="nav" id="nav">' + Nav.html() + '</nav>' +
+    '<button class="netpill" id="netpill" aria-live="polite"></button><div class="userbox right"><button class="userchip" id="uchip"><div class="avatar">' + esc(iniciales(s.nombre)) + '</div><span class="n">' + esc(s.nombre) + '</span></button>' +
+    '<div class="usermenu" id="umenu"><div class="who"><b>' + esc(s.nombre) + '</b><div class="small muted">' + esc(s.email) + '</div><span class="pill info" style="margin-top:6px">' + esc(rolTxt(s.rol)) + '</span></div>' +
+    '<button id="btnAyuda">📲 Cómo instalarla en el celular</button><button id="btnSalir">Cerrar sesión</button></div></div></header>' +
+    '<main id="vista"></main><div class="toasts" id="toasts"></div>';
+  $('#burger').onclick = function () { $('#nav').classList.toggle('open'); };
+  $('#netpill').onclick = function () { if (Red.enLinea() && Red.pendientes().length) Outbox.flush(true); else if (Red.pendientes().length) Outbox.revisar(); };
+  Red.pintar();
+  $('#uchip').onclick = function (e) { e.stopPropagation(); $('#umenu').classList.toggle('open'); };
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#umenu')) { const m = $('#umenu'); if (m) m.classList.remove('open'); }
+    if (!e.target.closest('.dd')) $$('.dd.open').forEach(function (d) { d.classList.remove('open'); });
+  });
+  $('#btnSalir').onclick = function () { Auth.salir(); };
+  $('#btnAyuda').onclick = function () {
+    $('#umenu').classList.remove('open');
+    UI.modal({ titulo: 'Usarla como una app en el celular', html: '<p><b>Android (Chrome):</b> menú ⋮ → <i>Agregar a pantalla principal</i>.</p><p><b>iPhone (Safari):</b> botón Compartir → <i>Agregar a inicio</i>.</p><p class="muted small">Así abre con un toque, como cualquier aplicación. Su sesión se mantiene en ese dispositivo.</p>', botones: [{ txt: 'Entendido', cls: 'pri' }] });
+  };
+  document.addEventListener('click', function (e) {
+    const b = e.target.closest('[data-ir]'); if (b) { Nav.ir(b.dataset.ir); return; }
+    const d = e.target.closest('[data-dd]'); if (d) d.parentNode.classList.toggle('open');
+  });
+}
+
+function mostrarFalla(e) {
+  const msg = (e && e.message) ? e.message : String(e);
+  const host = $('#vista') || $('#app') || document.body;
+  const b = document.createElement('div'); b.className = 'banner bad';
+  b.innerHTML = '<b>Ocurrió un problema en esta pantalla.</b><br>' + esc(msg) + '<br><button class="btn sm out" style="margin-top:8px" onclick="location.reload()">Recargar</button>';
+  host.prepend(b);
+  if (window.console) console.error(e);
+}
+window.addEventListener('error', function (ev) { if (ev && ev.message && !/ResizeObserver|Script error/i.test(ev.message)) mostrarFalla(ev.error || ev.message); });
+window.addEventListener('unhandledrejection', function (ev) { const r = ev.reason; if (r && r.silencio) return; if (r && r.tipo) return; mostrarFalla(r); });
+
+
+/* ===================== ACCESO (LOGIN POR CÓDIGO) ===================== */
+const Auth = {
+  // Arranque inmediato con la sesión guardada: funciona SIN señal.
+  async iniciar() {
+    const tok = Store.get('inta_tok'), ses = Sesion.leer();
+    if (!tok) { Vistas.login.mostrar(); return; }
+    if (ses) {
+      App.token = tok; App.ses = ses; shell(); Nav.ir('home');
+      if (Red.enLinea()) this.validar();
+      return;
+    }
+    try {
+      const s = await api('apiSesion', tok);
+      Sesion.guardar(s); App.token = tok; App.ses = s; shell(); Nav.ir('home'); Outbox.flush();
+    } catch (e) {
+      if (e.tipo === 'red') { Vistas.login.mostrar('Sin conexión: para ingresar necesita señal una vez. Después podrá trabajar sin señal hasta 14 días.'); return; }
+      Store.del('inta_tok'); Vistas.login.mostrar();
+    }
+  },
+  // Con señal, confirma en segundo plano que la sesión sigue vigente.
+  async validar() {
+    try { const s = await api('apiSesion', App.token); Sesion.guardar(s); App.ses = s; Outbox.flush(); }
+    catch (e) { if (e.tipo === 'sesion') this.salir('Su sesión venció. Ingrese de nuevo con un código. Lo que tenga pendiente de enviar se conserva en este celular.', true); }
+  },
+  // explicito=false (sesión vencida): se conserva la identidad para poder seguir cargando sin señal.
+  salir(msg, vencida) {
+    const prev = Vistas[App.vista]; if (prev && prev.destruir) { try { prev.destruir(); } catch (e) { } }
+    Store.del('inta_tok'); if (!vencida) Sesion.borrar();
+    App.token = null; App.ses = null; App.vista = null;
+    Vistas.login.mostrar(msg);
+  }
+};
+
+Vistas.login = {
+  mostrar(aviso) {
+    const demo = window.__DEMO__;
+    $('#app').innerHTML = '<div class="login"><div class="card">' +
+      '<div class="logo">IB</div><h2 class="center" style="margin-bottom:2px">Monitoreo Fitosanitario</h2>' +
+      '<p class="center muted small" style="margin-top:0">' + esc((window.__INST__ || 'INTA EEA Bella Vista')) + '</p>' +
+      (aviso ? '<div class="banner warn">' + esc(aviso) + '</div>' : '') +
+      (!Red.enLinea() ? '<div class="banner bad"><b>📵 Sin conexión.</b> El código llega por correo y necesita internet. Ingrese cuando tenga señal o wifi: después podrá trabajar sin señal hasta 14 días.</div>' : '') +
+      (!Red.enLinea() && Sesion.leer() ? '<button class="btn sec blk lg" id="loff" style="margin-bottom:12px">Continuar sin conexión como ' + esc(Sesion.leer().nombre.split(' ')[0]) + '</button>' : '') +
+      '<div id="paso1"><div class="f"><label>Su correo de Gmail</label><input type="email" id="lmail" autocomplete="email" inputmode="email" placeholder="nombre@gmail.com" value="' + esc(Store.get('inta_mail') || '') + '"></div>' +
+      '<button class="btn pri blk lg" id="lenviar">Enviarme el código</button>' +
+      '<p class="muted small center" style="margin-top:12px">Le llega un código de 6 dígitos por correo. No necesita contraseña.</p></div>' +
+      '<div id="paso2" class="hide"><p class="center">Escriba el código que le enviamos a<br><b id="lmail2"></b></p>' +
+      '<div class="f"><input type="text" id="lcod" class="codein" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="······"></div>' +
+      '<button class="btn pri blk lg" id="lentrar">Entrar</button>' +
+      '<div class="row" style="justify-content:space-between;margin-top:12px"><button class="linkbtn small" id="lotro">Cambiar correo</button><button class="linkbtn small" id="lreenv">Pedir otro código</button></div></div>' +
+      (demo ? '<div class="demo"><b>🔎 Modo demostración</b> (datos de ejemplo, nada se guarda). Elija un perfil:<div class="chips" style="margin-top:8px">' +
+        demo.usuarios.map(function (u) { return '<button class="chip" data-demo="' + esc(u.email) + '">' + esc(u.rol) + '</button>'; }).join('') +
+        '</div><div id="democod" class="hide" style="margin-top:10px"></div></div>' : '') +
+      '</div></div><div class="toasts" id="toasts"></div>';
+    const mail = $('#lmail'), cod = $('#lcod');
+    let enviado = null;
+    const pedir = async function () {
+      const m = mail.value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m)) { UI.toast('Escriba un correo válido.', 'bad'); return; }
+      if (!Red.enLinea()) { UI.toast('Sin conexión: el código llega por correo y necesita internet. Pruebe cuando tenga señal.', 'bad'); return; }
+      const b = $('#lenviar'); b.disabled = true; b.textContent = 'Enviando…';
+      try {
+        const r = await api('apiSolicitarCodigo', m);
+        Store.set('inta_mail', m); enviado = m;
+        $('#paso1').classList.add('hide'); $('#paso2').classList.remove('hide'); $('#lmail2').textContent = m;
+        UI.toast(r.mensaje); cod.value = ''; cod.focus();
+        if (demo && demo.codigo) { const d = $('#democod'); d.classList.remove('hide'); d.innerHTML = '📧 Código recibido (demo): <b class="mono">' + demo.codigo + '</b> <button class="btn sm sec" id="usarcod">Usar</button>'; $('#usarcod').onclick = function () { cod.value = demo.codigo; entrar(); }; }
+      } catch (e) { falla(e); } finally { b.disabled = false; b.textContent = 'Enviarme el código'; }
+    };
+    const entrar = async function () {
+      const c = cod.value.replace(/\D/g, '');
+      if (c.length !== 6) { UI.toast('Escriba los 6 dígitos del código.', 'bad'); return; }
+      const b = $('#lentrar'); b.disabled = true; b.textContent = 'Verificando…';
+      try {
+        const r = await api('apiVerificarCodigo', enviado, c);
+        Store.set('inta_tok', r.token); Sesion.guardar(r.sesion); App.token = r.token; App.ses = r.sesion; shell(); Nav.ir('home'); Outbox.flush();
+      } catch (e) { falla(e); cod.value = ''; cod.focus(); } finally { b.disabled = false; b.textContent = 'Entrar'; }
+    };
+    const off = $('#loff'); if (off) off.onclick = function () { App.token = Store.get('inta_tok') || null; App.ses = Sesion.leer(); shell(); Nav.ir('home'); };
+    $('#lenviar').onclick = pedir; $('#lentrar').onclick = entrar; $('#lreenv').onclick = pedir;
+    $('#lotro').onclick = function () { $('#paso2').classList.add('hide'); $('#paso1').classList.remove('hide'); mail.focus(); };
+    mail.onkeydown = function (e) { if (e.key === 'Enter') pedir(); };
+    cod.onkeydown = function (e) { if (e.key === 'Enter') entrar(); };
+    cod.oninput = function () { if (cod.value.replace(/\D/g, '').length === 6) entrar(); };
+    $$('[data-demo]').forEach(function (b) { b.onclick = function () { mail.value = b.dataset.demo; pedir(); }; });
+  }
+};
+
+/* ============== COLA DE ENVÍOS (sin señal en el campo) ==============
+ * Todo lo cargado sin conexión se guarda en el celular y se manda solo, en
+ * tandas, cuando vuelve la señal. Nada se descarta en silencio: lo que el
+ * servidor rechaza queda en "Con problemas" para revisarlo. */
+const Outbox = {
+  key: 'inta_outbox_v2', enCurso: false,
+  lista() { try { return JSON.parse(Store.get(this.key) || '[]'); } catch (e) { return []; } },
+  guardar(l) { Store.set(this.key, JSON.stringify(l)); Red.pintar(); },
+  agregar(it) {
+    it.owner = App.ses ? App.ses.email : ''; it.estado = 'pend'; it.creado = Date.now();
+    let l = this.lista();
+    if (it.tipo === 'general') l = l.filter(function (x) { return !(x.tipo === 'general' && x.monitoreoId === it.monitoreoId && x.estado === 'pend' && x.owner === it.owner); });
+    l.push(it); this.guardar(l);
+  },
+  quitar(id) { this.guardar(this.lista().filter(function (x) { return x.id !== id; })); },
+  pendientes(monId) { return this.lista().filter(function (x) { return x.tipo === 'planta' && (!monId || x.monitoreoId === monId); }); },
+  problemas() { return this.lista().filter(function (x) { return x.estado === 'error'; }); },
+  migrar() {
+    let v1 = []; try { v1 = JSON.parse(Store.get('inta_outbox_v1') || '[]'); } catch (e) { }
+    if (!v1.length) return;
+    const l = this.lista(), em = App.ses ? App.ses.email : '';
+    v1.forEach(function (x) { l.push({ id: x.clientId, tipo: 'planta', monitoreoId: x.monitoreoId, planta: x.planta, payload: x.payload, owner: em, estado: 'pend', creado: x.creado || Date.now() }); });
+    this.guardar(l); Store.del('inta_outbox_v1');
+  },
+  async flush(manual) {
+    if (this.enCurso || !App.ses) return 0;
+    if (!Red.enLinea()) { if (manual) UI.toast('Sin conexión: se enviará solo cuando vuelva la señal.'); return 0; }
+    if (!App.token) { if (manual) UI.toast('Ingrese con su correo para poder enviar lo pendiente.', 'bad'); return 0; }
+    const mios = this.lista().filter(function (x) { return x.owner === App.ses.email && x.estado !== 'error'; });
+    if (!mios.length) return 0;
+    this.enCurso = true; let ok = 0, mal = 0;
+    try {
+      for (let i = 0; i < mios.length; i += 10) {
+        const tanda = mios.slice(i, i + 10); let r;
+        try {
+          r = await apiA('apiSincronizarCampo', tanda.map(function (x) {
+            return { id: x.id, tipo: x.tipo, inicio: x.inicio || null, monitoreoId: x.monitoreoId, payload: x.payload, datos: x.datos };
+          }));
+        } catch (e) { if (e.tipo === 'negocio') { mal += tanda.length; tanda.forEach(function (x) { x.estado = 'error'; x.error = e.message; }); } else break; }
+        const L = this.lista(), hechos = {};
+        (r ? r.resultados : []).forEach(function (res) { hechos[res.id] = res; });
+        const restantes = [];
+        L.forEach(function (x) {
+          const res = hechos[x.id];
+          if (!res) { const t = tanda.filter(function (y) { return y.id === x.id; })[0]; if (t && t.estado === 'error') { x.estado = 'error'; x.error = t.error; } restantes.push(x); return; }
+          if (res.ok) { ok++; return; }
+          x.estado = 'error'; x.error = res.error || 'No se pudo enviar.'; mal++; restantes.push(x);
+        });
+        this.guardar(restantes);
+      }
+    } finally { this.enCurso = false; }
+    // Monitoreos locales cuyo contenido ya llegó al servidor: ya no hace falta guardarlos acá.
+    const quedan = this.lista();
+    MonLocal.lista().forEach(function (m) { if (!quedan.some(function (x) { return x.monitoreoId === m.MonitoreoID; })) MonLocal.quitar(m.MonitoreoID); });
+    if (ok) UI.toast('✔ ' + ok + ' envío(s) pendiente(s) enviado(s) al servidor.', 'ok');
+    if (mal) UI.toast(mal + ' envío(s) con problemas: toque «Revisar» para verlos.', 'bad');
+    if (ok && App.vista === 'carga' && Vistas.carga.refrescar) Vistas.carga.refrescar();
+    if ((ok || mal) && App.vista === 'home') Nav.ir('home');
+    Red.pintar();
+    return ok;
+  },
+  nombre(x) {
+    if (x.tipo === 'general') return 'Datos generales del lote';
+    const m = MonLocal.leer(x.monitoreoId) || (Snap.leer(x.monitoreoId) || {}).monitoreo || {};
+    return 'Planta ' + x.planta + (m.LoteNombre ? ' · ' + m.LoteNombre : '') + (m.Fecha ? ' · ' + fmtFecha(m.Fecha) : '');
+  },
+  revisar() {
+    const self = this;
+    const pintar = function (c) {
+      const l = self.lista().filter(function (x) { return !App.ses || x.owner === App.ses.email; });
+      c.body.innerHTML = l.length ? '<div class="plist">' + l.map(function (x) {
+        return '<div class="it"><div><b>' + esc(self.nombre(x)) + '</b><div class="small muted">' + (x.estado === 'error' ? '<span class="er">⚠ ' + esc(x.error) + '</span>' : '⏳ esperando conexión') + '</div></div>' +
+          '<div class="row">' + (x.estado === 'error' ? '<button class="btn sm sec" data-re="' + esc(x.id) + '">Reintentar</button>' : '') + '<button class="btn sm dan" data-de="' + esc(x.id) + '">Descartar</button></div></div>';
+      }).join('') + '</div>' : UI.vacio('No hay nada pendiente.');
+      $$('[data-re]', c.body).forEach(function (b) { b.onclick = function () { const L = self.lista(); L.forEach(function (x) { if (x.id === b.dataset.re) { x.estado = 'pend'; x.error = ''; } }); self.guardar(L); self.flush(true).then(function () { pintar(c); }); }; });
+      $$('[data-de]', c.body).forEach(function (b) { b.onclick = async function () { if (await UI.confirmar('¿Descartar este envío? Se pierde lo cargado y no se puede recuperar.', { si: 'Descartar', peligro: true })) { self.quitar(b.dataset.de); pintar(c); } }; });
+    };
+    const c = UI.modal({ titulo: 'Envíos pendientes en este celular', ancho: 'w', html: '', botones: [{ txt: 'Enviar ahora', cls: 'pri', cierra: false, fn: function (cc) { self.flush(true).then(function () { pintar(cc); }); } }, { txt: 'Cerrar' }] });
+    pintar(c);
+  }
+};
+window.addEventListener('online', function () { Outbox.flush(); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden) Outbox.flush(); });
+setInterval(function () { Outbox.flush(); }, 30000);
+
+/* ============================= INICIO ============================= */
+Vistas.home = {
+  async render(el) {
+    const s = App.ses, admin = tieneRol('admin');
+    el.innerHTML = '<div class="hd"><div class="eyebrow">' + esc(rolTxt(s.rol)) + '</div><h1>Hola, ' + esc(s.nombre.split(' ')[0]) + '</h1><p class="lead">¿Qué desea hacer hoy?</p></div>' +
+      '<div class="grid g3" id="tiles"></div><div id="resumen">' + UI.cargando() + '</div>';
+    const tiles = [['carga', '📋', 'Cargar datos', 'Registrar plantas del lote, desde el celular o la PC.', 1]];
+    if (admin) tiles.push(['monitoreos', '🗂️', 'Monitoreos', 'Seguir el avance, corregir y cerrar con informe.', 0],
+      ['analisis', '🔥', 'Análisis y mapas de calor', 'Filtrar por fecha, sector o lote y ver la incidencia.', 0],
+      ['alertas', '⚠️', 'Alertas', 'Plagas críticas detectadas (HLB y otras).', 0],
+      ['informes', '📄', 'Informes', 'Biblioteca ordenada por año y mes.', 0],
+      ['lotes', '🗺️', 'Lotes y mapa', 'Ubicación GPS y Google Earth.', 0]);
+    $('#tiles', el).innerHTML = tiles.filter(function (t) { return Vistas[t[0]]; }).map(function (t) {
+      return '<button class="tile' + (t[4] ? ' acc' : '') + '" data-ir="' + t[0] + '"><div class="ic">' + t[1] + '</div><h3>' + t[2] + '</h3><p>' + t[3] + '</p></button>';
+    }).join('');
+    try {
+      let r, offline = false;
+      try { r = await apiA('apiResumen'); Store.set('inta_res', JSON.stringify(r)); }
+      catch (e) {
+        if (e.tipo !== 'red') throw e;
+        offline = true; try { r = JSON.parse(Store.get('inta_res') || 'null'); } catch (x) { r = null; } r = r || { abiertos: [] };
+      }
+      let h = '';
+      const prob = Outbox.problemas().filter(function (x) { return x.owner === s.email; }).length, pend = Red.pendientes().length - prob;
+      if (offline) h += '<div class="banner warn"><b>📵 Sin conexión.</b> Puede cargar datos igual: se guardan en este celular y se envían solos cuando vuelva la señal. Lo que ve abajo es lo último que se descargó.</div>';
+      if (pend > 0) h += '<div class="banner warn">Tiene <b>' + pend + '</b> envío(s) guardado(s) en este celular esperando conexión. <button class="linkbtn" id="reint">Enviar ahora</button> · <button class="linkbtn" id="revis">Revisar</button></div>';
+      if (prob > 0) h += '<div class="banner bad"><b>' + prob + '</b> envío(s) con problemas (el servidor los rechazó). <button class="linkbtn" id="revis2">Revisar</button></div>';
+      if (window.__instalar) h += '<div class="banner ok">📲 Puede instalar esta app en su celular para abrirla sin señal. <button class="linkbtn" id="instalar">Instalar ahora</button></div>';
+      MonLocal.lista().forEach(function (m) { if (!r.abiertos.some(function (a) { return a.MonitoreoID === m.MonitoreoID; })) r.abiertos.unshift(Object.assign({ plantasCargadas: Outbox.pendientes(m.MonitoreoID).length, enCelular: true }, m)); });
+      if (admin && r.kpis && r.kpis.alertasNuevas) h += '<div class="banner bad" style="margin-top:14px"><b>⚠ ' + r.kpis.alertasNuevas + ' alerta(s) de plagas críticas sin atender.</b> <button class="linkbtn" data-ir="alertas">Ver alertas</button></div>';
+      if (admin && r.kpis) {
+        h += '<div class="kpis" style="margin-top:18px"><div class="kpi acc"><div class="n">' + r.kpis.abiertos + '</div><div class="l">Monitoreos abiertos</div></div>' +
+          '<div class="kpi"><div class="n">' + r.kpis.cerrados + '</div><div class="l">Cerrados</div></div>' +
+          '<div class="kpi"><div class="n">' + r.kpis.lotes + '</div><div class="l">Lotes activos</div></div>' +
+          '<div class="kpi"><div class="n">' + r.kpis.plantas + '</div><div class="l">Plantas registradas</div></div></div>';
+      }
+      h += '<h3 style="margin-top:22px">Monitoreos abiertos</h3>';
+      if (!r.abiertos.length) h += '<div class="card">' + UI.vacio('No hay monitoreos abiertos. Toque «Cargar datos» para iniciar uno.') + '</div>';
+      else h += '<div class="grid g2">' + r.abiertos.map(function (m) {
+        const pct = Math.min(100, Math.round(m.plantasCargadas / Math.max(1, m.PlantasPrevistas) * 100));
+        return '<div class="card"><div class="row"><b>' + esc(m.LoteNombre) + '</b><span class="pill warn right"><span class="dot"></span>' + (m.enCelular ? 'En este celular' : 'Abierto') + '</span></div>' +
+          '<div class="small muted">' + fmtFecha(m.Fecha) + ' · ' + esc(m.SectorNombre) + ' · ' + esc(m.Monitoreadores) + '</div>' +
+          '<div class="prog" style="margin:10px 0 4px"><i style="width:' + pct + '%"></i></div><div class="small muted">' + m.plantasCargadas + ' de ' + m.PlantasPrevistas + ' plantas</div>' +
+          '<div class="row" style="margin-top:10px"><button class="btn sm pri" data-cont="' + esc(m.MonitoreoID) + '">Continuar cargando</button>' +
+          (admin ? '<button class="btn sm out" data-ver="' + esc(m.MonitoreoID) + '">Ver detalle</button>' : '') + '</div></div>';
+      }).join('') + '</div>';
+      if (admin && r.sinMonitoreo && r.sinMonitoreo.length) {
+        h += '<h3 style="margin-top:22px">Lotes sin monitoreo en los últimos 30 días</h3><div class="card"><div class="chips">' +
+          r.sinMonitoreo.map(function (l) { return '<span class="pill warn">' + esc(l.Nombre) + (l.ultimo ? ' · último ' + fmtFecha(l.ultimo) : ' · nunca') + '</span>'; }).join('') + '</div></div>';
+      }
+      $('#resumen', el).innerHTML = h;
+      $$('[data-cont]', el).forEach(function (b) { b.onclick = function () { Nav.ir('carga', { monitoreoId: b.dataset.cont }); }; });
+      $$('[data-ver]', el).forEach(function (b) { b.onclick = function () { Nav.ir('monitoreos', { abrir: b.dataset.ver }); }; });
+      const re = $('#reint', el); if (re) re.onclick = function () { Outbox.flush(true).then(function () { Nav.ir('home'); }); };
+      const rv = $('#revis', el); if (rv) rv.onclick = function () { Outbox.revisar(); };
+      const rv2 = $('#revis2', el); if (rv2) rv2.onclick = function () { Outbox.revisar(); };
+      const ins = $('#instalar', el); if (ins) ins.onclick = function () { window.__instalar.prompt(); window.__instalar = null; };
+    } catch (e) { $('#resumen', el).innerHTML = ''; falla(e); }
+  }
+};
+
+
+/* ===================== FORMULARIO DE UNA PLANTA ===================== */
+const FormPlanta = {
+  // El formulario se arma solo a partir del protocolo del cultivo (variables).
+  vacio(vars) {
+    const d = {};
+    vars.forEach(function (v) {
+      d[v.ID] = v.Tipo === 'matriz' ? Array.apply(null, Array(Math.max(1, v.Columnas.length))).map(function () { return new Array((v.Reps || 5) + 1).join('0'); }) : 0;
+    });
+    return { datos: d, observaciones: '' };
+  },
+  completar(vars, datos) { const b = this.vacio(vars).datos; Object.keys(datos || {}).forEach(function (k) { if (k in b) b[k] = datos[k]; }); return b; },
+  tg(on, attrs, off, cls) { return '<button type="button" class="tg ' + (cls || '') + (on ? ' on' : '') + '" ' + attrs + '>' + (on ? 'X' : off) + '</button>'; },
+  critico(v, s) {
+    const x = s.datos[v.ID];
+    return v.critica && (v.Tipo === 'matriz' ? x.some(function (c) { return c.indexOf('1') >= 0; }) : Number(x) > 0);
+  },
+  info(v, plagas) { const p = plagas && v.PlagaID ? plagas[v.PlagaID] : null; return p && (p.Descripcion || p.ImagenURL || p.VideoURL) ? p : null; },
+  titulo(v, s, plagas) {
+    const p = this.info(v, plagas);
+    return '<h4>' + esc(v.Etiqueta) + (v.critica ? ' <span class="pill dan">⚠ alerta</span>' : '') +
+      (p ? ' <button type="button" class="linkbtn" data-info="' + esc(v.PlagaID) + '">ℹ Cómo reconocerla</button>' : '') +
+      (v.Ayuda ? '<small>' + esc(v.Ayuda) + '</small>' : '') + '</h4>';
+  },
+  bloque(v, s, plagas) {
+    const self = this, x = s.datos[v.ID];
+    let h = '';
+    if (v.Tipo === 'matriz') {
+      const cols = v.Columnas.length ? v.Columnas : ['Presente'];
+      h = this.titulo(v, s, plagas) + '<table class="mt"><thead><tr><th></th>' + cols.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+      for (let r = 0; r < (v.Reps || 5); r++) {
+        h += '<tr><td class="rl">R' + (r + 1) + '</td>' + cols.map(function (c, ci) { return '<td>' + self.tg(x[ci].charAt(r) === '1', 'data-m="' + esc(v.ID) + '" data-c="' + ci + '" data-r="' + r + '"', '–') + '</td>'; }).join('') + '</tr>';
+      }
+      h += '</tbody></table>';
+    } else if (v.Tipo === 'presencia') {
+      h = this.titulo(v, s, plagas) + '<button type="button" class="tg big' + (x ? ' on' : '') + '" data-pres="' + esc(v.ID) + '">' + esc(v.Etiqueta) + ' · ' + (x ? 'SÍ' : 'No') + '</button>';
+    } else if (v.Tipo === 'conteo') {
+      h = '<div class="f"><label>' + esc(v.Etiqueta) + (v.Ayuda ? ' <small class="muted">' + esc(v.Ayuda) + '</small>' : '') + '</label><div class="stp"><button type="button" data-d="-1">−</button><input type="number" min="0" inputmode="numeric" data-n="' + esc(v.ID) + '" value="' + x + '"><button type="button" data-d="1">+</button></div></div>';
+    } else if (v.Tipo === 'severidad') {
+      h = this.titulo(v, s, plagas) + '<div class="chips">';
+      for (let i = 0; i <= (v.Escala || 3); i++) h += '<button type="button" class="chip' + (Number(x) === i ? ' on' : '') + '" data-sev="' + esc(v.ID) + '" data-v="' + i + '" style="min-width:52px;justify-content:center">' + i + '</button>';
+      h += '</div>';
+    }
+    return '<div class="vbl" data-vb="' + esc(v.ID) + '">' + h + '</div>';
+  },
+  html(s, vars, plagas) {
+    const self = this; let grupo = null, h = '<div class="fp">';
+    vars.forEach(function (v) {
+      if (v.Grupo && v.Grupo !== grupo) { h += '<h3 class="grp">' + esc(v.Grupo) + '</h3>'; grupo = v.Grupo; }
+      h += self.bloque(v, s, plagas);
+    });
+    if (!vars.length) h += '<div class="banner warn">Este cultivo todavía no tiene variables para medir. Un administrador debe cargarlas en «Cultivos y protocolos».</div>';
+    return h + '<div id="alertaBox"></div><h4>Observaciones <small>opcional</small></h4><textarea data-obs maxlength="500" placeholder="Ej.: brote nuevo con daño leve…">' + esc(s.observaciones) + '</textarea></div>';
+  },
+  montar(el, s, vars, plagas) {
+    const self = this;
+    const aviso = function () {
+      const crit = vars.filter(function (v) { return self.critico(v, s); });
+      $('#alertaBox', el).innerHTML = crit.length ? '<div class="banner bad"><b>⚠ Plaga crítica detectada:</b> ' + crit.map(function (v) { return esc(v.Etiqueta); }).join(', ') + '. Al guardar se enviará una ALERTA al responsable. Anote en observaciones dónde está la planta.</div>' : '';
+    };
+    const buscar = function (id) { return vars.filter(function (v) { return v.ID === id; })[0]; };
+    const repintar = function (id) { const v = buscar(id); const nodo = $('[data-vb="' + id + '"]', el); if (nodo && v) nodo.outerHTML = self.bloque(v, s, plagas); aviso(); };
+    el.innerHTML = this.html(s, vars, plagas); aviso();
+    el.onclick = function (e) {
+      const m = e.target.closest('[data-m]'), pr = e.target.closest('[data-pres]'), sv = e.target.closest('[data-sev]'), st = e.target.closest('.stp button[data-d]'), inf = e.target.closest('[data-info]');
+      if (m) {
+        const a = s.datos[m.dataset.m][+m.dataset.c].split(''), r = +m.dataset.r; a[r] = a[r] === '1' ? '0' : '1'; s.datos[m.dataset.m][+m.dataset.c] = a.join('');
+        const on = a[r] === '1'; m.classList.toggle('on', on); m.textContent = on ? 'X' : '–'; aviso();
+      } else if (pr) { const id = pr.dataset.pres, on = !s.datos[id]; s.datos[id] = on ? 1 : 0; repintar(id); }
+      else if (sv) { s.datos[sv.dataset.sev] = +sv.dataset.v; repintar(sv.dataset.sev); }
+      else if (st) { const inp = st.parentNode.querySelector('input'); const n = Math.max(0, Math.min(9999, (parseInt(inp.value, 10) || 0) + parseInt(st.dataset.d, 10))); inp.value = n; s.datos[inp.dataset.n] = n; }
+      else if (inf) self.ayuda(plagas[inf.dataset.info]);
+    };
+    el.oninput = function (e) {
+      const t = e.target;
+      if (t.matches('.stp input')) s.datos[t.dataset.n] = Math.max(0, Math.min(9999, parseInt(t.value, 10) || 0));
+      else if (t.matches('[data-obs]')) s.observaciones = t.value;
+    };
+  },
+  // Ficha de la plaga: descripción, imagen y video (solo direcciones https).
+  ayuda(p) {
+    if (!p) return;
+    const https = function (u) { return /^https:\/\//i.test(u || ''); };
+    UI.modal({ titulo: p.Nombre, html: (p.NombreCientifico ? '<p class="muted small"><i>' + esc(p.NombreCientifico) + '</i> · ' + esc(p.Tipo) + '</p>' : '') +
+      (https(p.ImagenURL) ? '<img src="' + esc(p.ImagenURL) + '" alt="' + esc(p.Nombre) + '" style="max-width:100%;border-radius:10px;margin-bottom:10px" referrerpolicy="no-referrer">' : '') +
+      (p.Descripcion ? '<p>' + esc(p.Descripcion) + '</p>' : '') +
+      (https(p.VideoURL) ? '<p><a class="btn sec" target="_blank" rel="noopener noreferrer" href="' + esc(p.VideoURL) + '">▶ Ver video</a></p>' : '') +
+      (p.Critica ? '<div class="banner bad">Plaga crítica: cualquier detección genera una alerta inmediata.</div>' : ''), botones: [{ txt: 'Cerrar', cls: 'pri' }] });
+  },
+  resumen(s) {
+    let n = 0;
+    Object.keys(s.datos).forEach(function (k) { const x = s.datos[k]; if (Array.isArray(x)) x.forEach(function (c) { if (c.indexOf('1') >= 0) n++; }); else if (Number(x) > 0) n++; });
+    return n + (s.observaciones ? 1 : 0);
+  }
+};
+
+/* ===================== DATOS GENERALES DEL LOTE ===================== */
+function abrirDatosGenerales(m, alGuardar) {
+  const yn = function (name, on) {
+    return '<div class="chips"><button type="button" class="chip' + (on ? ' on' : '') + '" data-yn="' + name + '" data-v="1">Sí</button><button type="button" class="chip' + (!on ? ' on' : '') + '" data-yn="' + name + '" data-v="0">No</button></div>';
+  };
+  const num = function (k, label) { return '<div class="f"><label>' + label + '</label><input type="number" min="0" inputmode="numeric" name="' + k + '" value="' + (m[k] || 0) + '"></div>'; };
+  const ctl = UI.modal({
+    titulo: 'Datos generales del lote', ancho: 'w',
+    html: '<p class="muted small">' + esc(m.LoteNombre) + ' · ' + fmtFecha(m.Fecha) + '. Se completan una vez por jornada; cualquier integrante del equipo puede actualizarlos mientras el monitoreo esté abierto.</p>' +
+      '<div class="fr"><div class="f"><label>Productor</label><input type="text" name="Productor" value="' + esc(m.Productor) + '"></div>' +
+      '<div class="f"><label>Cantidad de plantas del lote</label><input type="number" min="0" inputmode="numeric" name="PlantasLote" value="' + (m.PlantasLote || 0) + '"></div></div>' +
+      '<div class="fr"><div class="f"><label>Monitoreadores</label><input type="text" name="Monitoreadores" value="' + esc(m.Monitoreadores) + '"></div><div></div></div>' +
+      '<div class="fr"><div class="f"><label>Trampa DC colocada</label>' + yn('TrampaDC', m.TrampaDC) + '</div><div class="f"><label>Cantidad de trampas DC</label><input type="number" min="0" inputmode="numeric" name="CantTrampasDC" value="' + (m.CantTrampasDC || 0) + '"></div></div>' +
+      '<div class="fr"><div class="f"><label>Trampa de enemigos naturales (EN)</label>' + yn('TrampaEN', m.TrampaEN) + '</div><div class="f"><label>Tipos (Tamarixia, Coccinélido, Crisopa…)</label><input type="text" name="TrampaENTipos" value="' + esc(m.TrampaENTipos) + '"></div></div>' +
+      '<div class="f"><label>Observaciones del lote</label><textarea name="ObsLote" maxlength="500">' + esc(m.ObsLote) + '</textarea></div>' +
+      '<h4>Monitoreo visual · enemigos naturales observados</h4><div class="grid g4" style="gap:10px">' + num('Aranas_Visual', 'Arañas') + num('Coccinelidos_Visual', 'Coccinélidos') + num('AcaroPred_Visual', 'Ácaro predador') + num('Crisopa_Visual', 'Crisopa') + '</div>' +
+      '<div class="f"><label>Observaciones del monitoreo visual</label><textarea name="ObsVisual" maxlength="500">' + esc(m.ObsVisual) + '</textarea></div>' +
+      '<h4>Golpeteo · enemigos naturales observados</h4><div class="grid g4" style="gap:10px">' + num('Aranas_Golpeteo', 'Arañas') + num('Coccinelidos_Golpeteo', 'Coccinélidos') + num('AcaroPred_Golpeteo', 'Ácaro predador') + num('Crisopa_Golpeteo', 'Crisopa') + '</div>' +
+      '<div class="f"><label>Observaciones del golpeteo</label><textarea name="ObsGolpeteo" maxlength="500">' + esc(m.ObsGolpeteo) + '</textarea></div>',
+    botones: [{ txt: 'Cancelar' }, { txt: 'Guardar datos generales', cls: 'pri', cierra: false, fn: async function (c) {
+      const d = leerForm(c.body);
+      d.TrampaDC = c.q('[data-yn=TrampaDC].on').dataset.v === '1'; d.TrampaEN = c.q('[data-yn=TrampaEN].on').dataset.v === '1';
+      try {
+        if (!Red.enLinea() || m.local) throw { tipo: 'red' };
+        await apiA('apiActualizarMonitoreo', m.MonitoreoID, d); UI.toast('Datos generales guardados.', 'ok'); c.cerrar(); if (alGuardar) alGuardar();
+      } catch (e) {
+        if (e.tipo !== 'red') { falla(e); return; }
+        Outbox.agregar({ id: uid(), tipo: 'general', monitoreoId: m.MonitoreoID, datos: d, inicio: m.local ? m.inicio : null });
+        Object.assign(m, d); if (m.local) MonLocal.guardar(m); else { const sn = Snap.leer(m.MonitoreoID); if (sn) { sn.monitoreo = m; Snap.guardar(m.MonitoreoID, sn); } }
+        UI.toast('📵 Datos generales guardados en este celular. Se enviarán solos.', 'ok'); c.cerrar(); if (alGuardar) alGuardar();
+      }
+    } }]
+  });
+  ctl.body.onclick = function (e) {
+    const b = e.target.closest('[data-yn]'); if (!b) return;
+    $$('[data-yn="' + b.dataset.yn + '"]', ctl.body).forEach(function (x) { x.classList.toggle('on', x === b); });
+  };
+}
+
+/* ============================== CARGA ============================== */
+Vistas.carga = {
+  C: null, timer: null, el: null,
+  destruir() { clearInterval(this.timer); this.timer = null; },
+
+  async render(el, params) {
+    this.el = el; this.destruir();
+    this.C = { cat: null, mon: null, plantas: [], sel: null, estado: [], sectorF: '', busca: '', monSel: [], fecha: '' };
+    el.innerHTML = UI.cargando();
+    try {
+      this.C.cat = await Catalogo.obtener();
+      this.C.fecha = this.C.cat.hoy;
+      if (App.ses.monitoreadorId) this.C.monSel = [App.ses.monitoreadorId];
+      if (params.monitoreoId) await this.abrir(params.monitoreoId); else this.selector();
+    } catch (e) { el.innerHTML = ''; falla(e); }
+  },
+
+  /* ---------- Paso 1: elegir lote, fecha y quién monitorea ---------- */
+  async selector() {
+    const C = this.C, el = this.el; this.destruir();
+    C.mon = null;
+    el.innerHTML = '<div class="hd"><div class="eyebrow">Cargar datos</div><h1>¿Qué lote va a monitorear?</h1><p class="lead">Elija quién monitorea, la fecha y el lote. Puede dejar el monitoreo abierto y volver cuando quiera.</p></div>' +
+      '<div id="pendBanner"></div><div id="abiertos"></div><div class="card"><h3>1 · ¿Quién monitorea?</h3><div class="chips" id="cm"></div>' +
+      '<div class="sep"></div><h3>2 · Fecha del monitoreo</h3><div style="max-width:220px"><input type="date" id="cf" value="' + C.fecha + '" max="' + C.cat.hoy + '"></div>' +
+      '<div class="sep"></div><h3>3 · Lote</h3><div class="chips" id="cs"></div><div class="f" style="margin:10px 0"><input type="search" id="cb" placeholder="Buscar lote o productor…"></div><div class="grid g2" id="cl"></div></div>';
+    const prob = Outbox.problemas().filter(function (x) { return x.owner === App.ses.email; }).length, pend = Red.pendientes().length - prob;
+    let bn = '';
+    if (C.cat.sinConexion) bn += '<div class="banner warn"><b>📵 Sin conexión.</b> Usando los lotes descargados' + (C.cat.bajado ? ' el ' + fmtFechaHora(new Date(C.cat.bajado).toISOString().slice(0, 16)) : '') + '. Lo que cargue se guarda en este celular y se envía solo cuando vuelva la señal.</div>';
+    if (pend > 0) bn += '<div class="banner warn">Hay <b>' + pend + '</b> envío(s) guardado(s) en este celular esperando conexión. <button class="linkbtn" id="reint">Enviar ahora</button> · <button class="linkbtn" id="revis">Revisar</button></div>';
+    if (prob > 0) bn += '<div class="banner bad"><b>' + prob + '</b> envío(s) con problemas. <button class="linkbtn" id="revis2">Revisar</button></div>';
+    $('#pendBanner', el).innerHTML = bn;
+    const re = $('#reint', el); if (re) re.onclick = function () { Outbox.flush(true).then(function () { Vistas.carga.selector(); }); };
+    const rv = $('#revis', el) || $('#revis2', el); if (rv) rv.onclick = function () { Outbox.revisar(); };
+    const rv2 = $('#revis2', el); if (rv2) rv2.onclick = function () { Outbox.revisar(); };
+
+    const pintarMon = function () {
+      $('#cm', el).innerHTML = C.cat.monitoreadores.length ? C.cat.monitoreadores.map(function (m) { return '<button class="chip' + (C.monSel.indexOf(m.ID) >= 0 ? ' on' : '') + '" data-m="' + m.ID + '">' + esc(m.Nombre) + '</button>'; }).join('') : '<span class="muted small">Todavía no hay monitoreadores cargados; se usará su nombre.</span>';
+    };
+    const pintarSec = function () {
+      $('#cs', el).innerHTML = '<button class="chip' + (!C.sectorF ? ' on' : '') + '" data-s="">Todos</button>' + C.cat.sectores.map(function (s) { return '<button class="chip' + (C.sectorF === s.ID ? ' on' : '') + '" data-s="' + s.ID + '">' + esc(s.Nombre) + '</button>'; }).join('');
+    };
+    const pintarLotes = function () {
+      const q = C.busca.toLowerCase();
+      const ls = C.cat.lotes.filter(function (l) { return (!C.sectorF || l.SectorID === C.sectorF) && (!q || (l.Nombre + ' ' + l.Productor).toLowerCase().indexOf(q) >= 0); });
+      $('#cl', el).innerHTML = ls.length ? ls.map(function (l) {
+        return '<button class="lotecard" data-l="' + l.ID + '"><div class="ic">🌳</div><div><b>' + esc(l.Nombre) + '</b><div class="small muted">' + esc(l.CultivoNombre) + ' · ' + esc(l.SectorNombre) + (l.Productor ? ' · ' + esc(l.Productor) : '') + ' · ' + l.PlantasMonitoreo + ' plantas a monitorear' + (l.Latitud !== null ? ' · 📍' : '') + '</div></div></button>';
+      }).join('') : '<div class="empty" style="grid-column:1/-1">No hay lotes para mostrar. Un administrador puede agregarlos en «Lotes y mapa».</div>';
+    };
+    pintarMon(); pintarSec(); pintarLotes();
+    el.onclick = async function (e) {
+      const m = e.target.closest('[data-m]'), s = e.target.closest('[data-s]'), l = e.target.closest('[data-l]');
+      if (m) { const i = C.monSel.indexOf(m.dataset.m); if (i >= 0) C.monSel.splice(i, 1); else C.monSel.push(m.dataset.m); pintarMon(); }
+      else if (s) { C.sectorF = s.dataset.s; pintarSec(); pintarLotes(); }
+      else if (l) {
+        C.fecha = $('#cf', el).value || C.cat.hoy;
+        l.disabled = true;
+        try { const mon = await Vistas.carga.iniciar(l.dataset.l, C.fecha, C.monSel); await Vistas.carga.abrir(mon.MonitoreoID, mon); }
+        catch (er) { falla(er); l.disabled = false; }
+      }
+    };
+    $('#cb', el).oninput = function (e) { C.busca = e.target.value; pintarLotes(); };
+    try {
+      let ab = [];
+      try { ab = await apiA('apiMonitoreosAbiertos'); Store.set('inta_ab', JSON.stringify(ab)); }
+      catch (e) { if (e.tipo !== 'red') throw e; try { ab = JSON.parse(Store.get('inta_ab') || '[]'); } catch (x) { ab = []; } }
+      MonLocal.lista().forEach(function (m) { if (!ab.some(function (a) { return a.MonitoreoID === m.MonitoreoID; })) ab.unshift(Object.assign({ plantasCargadas: Outbox.pendientes(m.MonitoreoID).length }, m)); });
+      if (ab.length) {
+        $('#abiertos', el).innerHTML = '<div class="card" style="margin-bottom:14px"><h3>Continuar un monitoreo abierto</h3><div class="grid g2">' + ab.map(function (a) {
+          return '<button class="lotecard" data-cont="' + esc(a.MonitoreoID) + '"><div class="ic">▶️</div><div><b>' + esc(a.LoteNombre) + '</b><div class="small muted">' + fmtFecha(a.Fecha) + ' · ' + a.plantasCargadas + ' de ' + a.PlantasPrevistas + ' plantas</div></div></button>';
+        }).join('') + '</div></div>';
+        $$('[data-cont]', el).forEach(function (b) { b.onclick = function () { Vistas.carga.abrir(b.dataset.cont); }; });
+      }
+    } catch (e) { /* no crítico */ }
+  },
+
+  /* ---------- Paso 2: grilla de plantas ---------- */
+  // Con señal lo crea el servidor; sin señal se crea en el celular y se envía después.
+  async iniciar(loteId, fecha, monSel) {
+    const C = this.C;
+    if (Red.enLinea()) {
+      try { return await apiA('apiIniciarMonitoreo', { loteId: loteId, fecha: fecha, monitoreadores: monSel }); }
+      catch (e) { if (e.tipo !== 'red') throw e; }
+    }
+    const lote = C.cat.lotes.filter(function (x) { return x.ID === loteId; })[0];
+    if (!lote) throw { tipo: 'negocio', message: 'Elija un lote válido.' };
+    const hoy = hoyLocal();
+    if (fecha > hoy) throw { tipo: 'negocio', message: 'La fecha no puede ser futura.' };
+    const viejo = new Date(new Date(hoy + 'T00:00:00').getTime() - (C.cat.diasAtras || 30) * 86400000), lim = viejo.getFullYear() + '-' + String(viejo.getMonth() + 1).padStart(2, '0') + '-' + String(viejo.getDate()).padStart(2, '0');
+    if (fecha < lim) throw { tipo: 'negocio', message: 'Solo puede cargar monitoreos de los últimos ' + (C.cat.diasAtras || 30) + ' días.' };
+    const id = MonLocal.id(lote.ID, fecha), previo = MonLocal.leer(id) || (Snap.leer(id) || {}).monitoreo;
+    if (previo) return previo;
+    const nombres = monSel.map(function (i) { const m = C.cat.monitoreadores.filter(function (x) { return x.ID === i; })[0]; return m ? m.Nombre : ''; }).filter(Boolean);
+    const mon = { MonitoreoID: id, LoteID: lote.ID, LoteNombre: lote.Nombre, SectorID: lote.SectorID, SectorNombre: lote.SectorNombre, CultivoID: lote.CultivoID, CultivoNombre: lote.CultivoNombre, Fecha: fecha, Estado: 'Abierto',
+      Monitoreadores: (nombres.length ? nombres : [App.ses.nombre]).join(' / '), Productor: lote.Productor, PlantasLote: lote.Plantas, PlantasPrevistas: lote.PlantasMonitoreo,
+      TrampaDC: false, CantTrampasDC: 0, TrampaEN: false, TrampaENTipos: '', ObsLote: '', ObsVisual: '', Aranas_Visual: 0, Coccinelidos_Visual: 0, AcaroPred_Visual: 0, Crisopa_Visual: 0,
+      ObsGolpeteo: '', Aranas_Golpeteo: 0, Coccinelidos_Golpeteo: 0, AcaroPred_Golpeteo: 0, Crisopa_Golpeteo: 0,
+      local: true, inicio: { loteId: lote.ID, fecha: fecha, monitoreadores: monSel.slice() }, creado: Date.now() };
+    MonLocal.guardar(mon);
+    return mon;
+  },
+
+  /* ---------- Paso 2: grilla de plantas ---------- */
+  async abrir(monId, pre) {
+    let mon = null, plantas = [];
+    const snap = Snap.leer(monId), loc = MonLocal.leer(monId);
+    if (Red.enLinea() && !(pre && pre.local)) {
+      try { const r = await apiA('apiEstadoMonitoreo', monId); mon = r.monitoreo; plantas = r.plantas; Snap.guardar(monId, { monitoreo: mon, plantas: plantas }); }
+      catch (e) { if (e.tipo !== 'red' && !(e.tipo === 'negocio' && loc)) throw e; }
+    }
+    if (!mon) {
+      mon = loc || (pre || null) || (snap && snap.monitoreo);
+      if (!mon) throw { tipo: 'red', message: 'Ese monitoreo no está disponible sin conexión. Ábralo una vez con señal para dejarlo en el celular.' };
+      plantas = snap ? snap.plantas : [];
+    }
+    this.C.mon = mon; this.C.plantas = plantas; this.C.sel = null;
+    this.grilla();
+    const self = this; this.destruir();
+    this.timer = setInterval(function () { if (App.vista === 'carga' && !self.C.sel) self.refrescar(); }, 20000);
+  },
+  async refrescar() {
+    if (!this.C || !this.C.mon || this.C.mon.local || !Red.enLinea()) return;
+    try {
+      const r = await apiA('apiEstadoMonitoreo', this.C.mon.MonitoreoID);
+      this.C.mon = r.monitoreo; this.C.plantas = r.plantas; Snap.guardar(r.monitoreo.MonitoreoID, { monitoreo: r.monitoreo, plantas: r.plantas });
+      if (!this.C.sel) this.grilla();
+    } catch (e) { /* sin señal: se reintenta */ }
+  },
+  grilla(aviso) {
+    const C = this.C, el = this.el, m = C.mon;
+    const hechas = {}; C.plantas.forEach(function (p) { hechas[p.planta] = p; });
+    const cola = {}; Outbox.pendientes(m.MonitoreoID).forEach(function (x) { cola[x.planta] = true; });
+    const max = Math.max(m.PlantasPrevistas, C.plantas.reduce(function (a, p) { return Math.max(a, p.planta); }, 0));
+    const total = m.PlantasPrevistas, hechasN = C.plantas.length + Object.keys(cola).filter(function (k) { return !hechas[k]; }).length;
+    const pct = Math.min(100, Math.round(hechasN / Math.max(1, total) * 100));
+    let tiles = '';
+    for (let n = 1; n <= max; n++) {
+      const h = hechas[n];
+      tiles += h ? '<button class="ptile done" data-done="' + n + '">' + n + '<small>' + esc((h.por || '').split(' ')[0]) + '</small></button>'
+        : cola[n] ? '<button class="ptile queue" data-q="' + n + '">' + n + '<small>⏳ pendiente</small></button>'
+          : '<button class="ptile pend" data-p="' + n + '">' + n + '</button>';
+    }
+    el.innerHTML = '<div class="hd-row"><button class="btn sm out" id="volver">← Cambiar lote</button><div style="flex:1"><div class="eyebrow">' + fmtFecha(m.Fecha) + ' · ' + esc(m.SectorNombre) + '</div><h1 style="margin:0">' + esc(m.LoteNombre) + '</h1></div>' +
+      '<button class="btn sm sec" id="dg">📌 Datos generales</button><button class="btn sm out" id="act">↻ Actualizar</button></div>' +
+      (aviso ? '<div class="banner ok">' + aviso + '</div>' : '') +
+      (m.local ? '<div class="banner warn">📵 Este monitoreo se inició sin señal: todavía está solo en este celular y se creará en el sistema al enviar la primera planta.</div>' : (!Red.enLinea() ? '<div class="banner warn">📵 Sin conexión: puede seguir cargando. Se envía solo cuando vuelva la señal.</div>' : '')) +
+      '<div class="card"><div class="row"><b>' + hechasN + ' de ' + total + ' plantas cargadas</b><span class="muted small right">Monitorean: ' + esc(m.Monitoreadores) + '</span></div>' +
+      '<div class="prog" style="margin:10px 0 14px"><i style="width:' + pct + '%"></i></div>' +
+      '<p class="small muted" style="margin:0 0 12px">Toque una planta para cargarla. Las verdes ya fueron cargadas (por usted o por otra persona) y no se pueden volver a editar: si hay un error, un administrador la corrige.</p>' +
+      '<div class="ptiles">' + tiles + '<button class="ptile" id="otra" style="font-size:13px;font-family:Inter,sans-serif">+ otra<br>planta</button></div></div>';
+    $('#volver', el).onclick = function () { Vistas.carga.selector(); };
+    $('#act', el).onclick = function () { Vistas.carga.refrescar().then(function () { UI.toast('Actualizado.'); }); };
+    $('#dg', el).onclick = function () { abrirDatosGenerales(C.mon, function () { Vistas.carga.refrescar(); }); };
+    $('#otra', el).onclick = function () {
+      const c = UI.modal({ titulo: 'Cargar otra planta', html: '<div class="f"><label>Número de planta</label><input type="number" min="1" max="500" inputmode="numeric" name="n" value="' + (max + 1) + '"></div>',
+        botones: [{ txt: 'Cancelar' }, { txt: 'Abrir', cls: 'pri', fn: function (cc) { const n = parseInt(leerForm(cc.body).n, 10); if (!n || n < 1 || n > 500) { UI.toast('Número de planta inválido.', 'bad'); return false; } Vistas.carga.planta(n); } }] });
+    };
+    el.onclick = function (e) {
+      const p = e.target.closest('[data-p]'), d = e.target.closest('[data-done]'), q = e.target.closest('[data-q]');
+      if (p && p.classList.contains('ptile')) Vistas.carga.planta(parseInt(p.dataset.p, 10));
+      else if (d) { const x = hechas[d.dataset.done]; UI.toast('Planta ' + d.dataset.done + ' ya cargada por ' + x.por + ' (' + x.hora + '). Solo un administrador puede corregirla.'); }
+      else if (q) UI.toast('Esa planta está guardada en este dispositivo y se enviará al volver la conexión.');
+    };
+  },
+
+  /* ---------- Paso 3: formulario de la planta ---------- */
+  planta(n) {
+    const C = this.C, el = this.el, m = C.mon;
+    const cul = (C.cat.cultivos || []).filter(function (c) { return c.ID === m.CultivoID; })[0];
+    if (!cul) { UI.toast('Falta el protocolo de este cultivo en el celular. Conéctese a internet una vez y vuelva a abrir «Cargar datos».', 'bad'); return; }
+    C.sel = n; this.destruir();
+    const vars = cul.variables, plagas = {}; (C.cat.plagas || []).forEach(function (p) { plagas[p.ID] = p; });
+    const s = FormPlanta.vacio(vars);
+    el.innerHTML = '<div class="hd-row"><button class="btn sm out" id="atras">← Volver a las plantas</button><div style="flex:1"><div class="eyebrow">' + esc(m.LoteNombre) + ' · ' + fmtFecha(m.Fecha) + '</div><h1 style="margin:0">Planta ' + n + '</h1></div></div>' +
+      '<div class="card"><div id="fp"></div><div class="savebar"><button class="btn sec lg" id="sinnov">✔ Sin novedad</button><button class="btn pri lg" id="guardar">Guardar planta →</button></div></div>';
+    const fp = $('#fp', el); FormPlanta.montar(fp, s, vars, plagas);
+    $('#atras', el).onclick = async function () {
+      if (FormPlanta.resumen(s) > 0 && !(await UI.confirmar('Tiene datos sin guardar en esta planta. ¿Salir igual?', { si: 'Salir', no: 'Seguir cargando', peligro: true }))) return;
+      C.sel = null; Vistas.carga.grilla(); Vistas.carga.refrescar();
+      Vistas.carga.timer = setInterval(function () { if (App.vista === 'carga' && !C.sel) Vistas.carga.refrescar(); }, 20000);
+    };
+    $('#sinnov', el).onclick = function () { const obs = s.observaciones; Object.assign(s, FormPlanta.vacio(vars), { observaciones: obs }); FormPlanta.montar(fp, s, vars, plagas); UI.toast('Todo en cero para esta planta.'); };
+    $('#guardar', el).onclick = async function () {
+      const b = this; b.disabled = true;
+      const payload = Object.assign({ monitoreoId: m.MonitoreoID, clientId: uid(), planta: n }, JSON.parse(JSON.stringify(s)));
+      const sig = function () { const hechas = {}; C.plantas.forEach(function (p) { hechas[p.planta] = 1; }); Outbox.pendientes(m.MonitoreoID).forEach(function (x) { hechas[x.planta] = 1; }); for (let i = 1; i <= m.PlantasPrevistas; i++) if (!hechas[i]) return i; return null; };
+      const seguir = function (msg) {
+        const prox = sig(); C.sel = null;
+        if (prox) { UI.toast(msg, 'ok'); Vistas.carga.planta(prox); }
+        else { Vistas.carga.grilla('🎉 <b>Completó todas las plantas previstas.</b> Revise los «Datos generales» del lote y avise a un administrador para cerrar el monitoreo.'); }
+      };
+      try {
+        if (!Red.enLinea() || m.local) throw { tipo: 'red' };
+        const rr = await apiA('apiGuardarPlanta', payload);
+        if (rr && rr.alerta && rr.alerta.length) UI.toast('⚠ ALERTA enviada al responsable: ' + rr.alerta.join(', '), 'bad');
+        C.plantas.push({ planta: n, por: App.ses.nombre, hora: new Date().toTimeString().slice(0, 5) });
+        seguir('Planta ' + n + ' guardada ✔');
+      } catch (e) {
+        if (e.tipo === 'red') {
+          Outbox.agregar({ id: payload.clientId, tipo: 'planta', monitoreoId: m.MonitoreoID, planta: n, payload: payload, inicio: m.local ? m.inicio : null });
+          seguir('📵 Planta ' + n + ' guardada en este celular. Se enviará sola cuando vuelva la señal.');
+        } else { falla(e); if (e.tipo === 'negocio') { await Vistas.carga.refrescar(); } b.disabled = false; }
+      }
+    };
+    window.scrollTo(0, 0);
+  }
+};
+
+
+/* ================== MONITOREOS (ADMINISTRACIÓN) ================== */
+Vistas.monitoreos = {
+  F: { estado: 'Todos', sectorId: '', loteId: '', desde: '', hasta: '' },
+  cat: null,
+  async render(el, params) {
+    el.innerHTML = UI.cargando();
+    try {
+      const r = await Promise.all([apiA('apiListar', 'sectores'), apiA('apiListar', 'lotes')]);
+      this.cat = { sectores: r[0], lotes: r[1] };
+    } catch (e) { el.innerHTML = ''; return falla(e); }
+    const F = this.F;
+    el.innerHTML = '<div class="hd"><div class="eyebrow">Administración</div><h1>Monitoreos</h1><p class="lead">Siga el avance de la carga, corrija datos, cierre el monitoreo y envíe el informe.</p></div>' +
+      '<div class="card"><div class="filters">' +
+      '<div class="f"><label>Estado</label><select id="fe"><option>Todos</option><option>Abierto</option><option>Cerrado</option></select></div>' +
+      '<div class="f"><label>Sector</label><select id="fs">' + opcionesSel(this.cat.sectores, F.sectorId, 'Todos') + '</select></div>' +
+      '<div class="f"><label>Lote</label><select id="fl">' + opcionesSel(this.cat.lotes, F.loteId, 'Todos') + '</select></div>' +
+      '<div class="f"><label>Desde</label><input type="date" id="fd" value="' + F.desde + '"></div>' +
+      '<div class="f"><label>Hasta</label><input type="date" id="fh" value="' + F.hasta + '"></div></div></div>' +
+      '<div class="card" style="margin-top:14px"><div class="tw" id="lista">' + UI.cargando() + '</div></div>';
+    $('#fe', el).value = F.estado;
+    const cambio = function () {
+      F.estado = $('#fe', el).value; F.sectorId = $('#fs', el).value; F.loteId = $('#fl', el).value; F.desde = $('#fd', el).value; F.hasta = $('#fh', el).value;
+      Vistas.monitoreos.cargar();
+    };
+    ['fe', 'fs', 'fl', 'fd', 'fh'].forEach(function (i) { $('#' + i, el).onchange = cambio; });
+    await this.cargar();
+    if (params && params.abrir) this.detalle(params.abrir);
+  },
+  async cargar() {
+    const box = $('#lista'); if (!box) return;
+    try {
+      const lista = await apiA('apiListarMonitoreos', this.F);
+      box.innerHTML = lista.length ? '<table class="tbl"><thead><tr><th>Fecha</th><th>Lote</th><th>Sector</th><th>Estado</th><th>Plantas</th><th>Monitoreadores</th></tr></thead><tbody>' +
+        lista.map(function (m) {
+          return '<tr class="clic" data-id="' + esc(m.MonitoreoID) + '"><td class="nowrap">' + fmtFecha(m.Fecha) + '</td><td><b>' + esc(m.LoteNombre) + '</b></td><td>' + esc(m.SectorNombre) + '</td>' +
+            '<td><span class="pill ' + (m.Estado === 'Abierto' ? 'warn' : 'ok') + '"><span class="dot"></span>' + m.Estado + '</span></td><td>' + m.plantasCargadas + ' / ' + m.PlantasPrevistas + '</td><td class="small">' + esc(m.Monitoreadores) + '</td></tr>';
+        }).join('') + '</tbody></table>' : UI.vacio('No hay monitoreos con esos filtros.');
+      $$('tr[data-id]', box).forEach(function (tr) { tr.onclick = function () { Vistas.monitoreos.detalle(tr.dataset.id); }; });
+    } catch (e) { box.innerHTML = ''; falla(e); }
+  },
+
+  async detalle(id) {
+    const ctl = UI.modal({ titulo: 'Monitoreo', ancho: 'xw', html: UI.cargando() });
+    const self = this;
+    const pintar = async function () {
+      let r, mp;
+      try { r = await apiA('apiDetalleMonitoreo', id); mp = await apiA('apiMatrizPlantas', id); } catch (e) { ctl.cerrar(); return falla(e); }
+      const m = r.monitoreo, abierto = m.Estado === 'Abierto';
+      ctl.titulo(m.LoteNombre + ' · ' + fmtFecha(m.Fecha));
+      ctl.body.innerHTML =
+        '<div class="row" style="margin-bottom:10px"><span class="pill ' + (abierto ? 'warn' : 'ok') + '"><span class="dot"></span>' + m.Estado + '</span><span class="muted small">' + esc(m.SectorNombre) + ' · Monitorean: ' + esc(m.Monitoreadores) + ' · Productor: ' + esc(m.Productor || '-') + '</span></div>' +
+        '<div class="row" style="margin-bottom:12px"><button class="btn sm sec" id="dgb">📌 Datos generales</button>' +
+        (abierto ? '<button class="btn sm pri" id="cerrar">Cerrar y enviar informe</button>' : '<button class="btn sm out" id="reabrir">Reabrir</button>' + (m.InformeID ? '<button class="btn sm sec" id="infor">⬇ Descargar informe</button>' : '')) + '</div>' +
+        (m.Estado === 'Cerrado' ? '<p class="small muted">Cerrado por ' + esc(m.CerradoPor) + ' el ' + fmtFechaHora(m.FechaCierre) + (m.InformeEnviadoA ? ' · informe enviado a ' + esc(m.InformeEnviadoA) : '') + '</p>' : '') +
+        '<h4>Plantas cargadas (' + r.registros.length + ' de ' + m.PlantasPrevistas + ')</h4>' +
+        (r.registros.length ? '<div class="tw"><table class="tbl"><thead><tr><th>Planta</th><th>Cargada por</th><th>Fecha y hora</th><th>Corrección</th><th></th></tr></thead><tbody>' +
+          r.registros.map(function (g) {
+            return '<tr><td><b>' + g.planta + '</b></td><td>' + esc(g.por) + '</td><td class="small nowrap">' + fmtFechaHora(g.hora) + '</td><td class="small">' + (g.corregidoPor ? '<span class="pill info">corregida por ' + esc(g.corregidoPor) + '</span>' : '') + '</td><td style="text-align:right"><button class="btn sm out" data-fix="' + esc(g.registroId) + '">Corregir</button></td></tr>';
+          }).join('') + '</tbody></table></div>' : UI.vacio('Todavía no hay plantas cargadas.')) +
+        (mp.plantas.length ? '<h4 style="margin-top:18px">Mapa de calor por planta</h4>' + Graf.calor(mp.cats.map(function (c) { return { txt: c.corto, titulo: c.nombre }; }),
+          mp.plantas.map(function (p, i) { return { label: 'Planta ' + p, vals: mp.vals[i] }; })) +
+          '<p class="small muted">' + mp.cats.map(function (c) { return c.corto + ' = ' + c.nombre; }).join(' · ') + '</p>' : '');
+      const q = function (s) { return ctl.q(s); };
+      q('#dgb').onclick = function () { abrirDatosGenerales(m, pintar); };
+      if (q('#cerrar')) q('#cerrar').onclick = function () { self.cerrar(m, r.registros.length, ctl, pintar); };
+      if (q('#reabrir')) q('#reabrir').onclick = async function () {
+        if (!(await UI.confirmar('¿Reabrir este monitoreo? Volverá a admitir cargas de plantas.', { si: 'Reabrir' }))) return;
+        try { await apiA('apiReabrirMonitoreo', id); UI.toast('Monitoreo reabierto.', 'ok'); pintar(); self.cargar(); } catch (e) { falla(e); }
+      };
+      if (q('#infor')) q('#infor').onclick = function () { bajarArchivo(m.InformeID); };
+      ctl.qa('[data-fix]').forEach(function (b) {
+        b.onclick = function () { self.corregir(r.registros.filter(function (x) { return x.registroId === b.dataset.fix; })[0], m, pintar, r.variables); };
+      });
+    };
+    ctl.body.onclick = null; await pintar();
+  },
+
+  corregir(reg, m, alGuardar, variables) {
+    const vars = (variables || []).filter(function (v) { return v.Activo === 'SI'; });
+    const s = { datos: FormPlanta.completar(vars, reg.datos), observaciones: reg.observaciones || '' };
+    const c = UI.modal({ titulo: 'Corregir planta ' + reg.planta, ancho: 'w', html: (m.Estado === 'Cerrado' ? '<div class="banner warn">El monitoreo está cerrado: el informe ya enviado no se modifica. Después de corregir puede generar un informe nuevo desde «Análisis».</div>' : '') + '<div id="fpc"></div>',
+      botones: [{ txt: 'Cancelar' }, { txt: 'Guardar corrección', cls: 'pri', cierra: false, fn: async function (cc) {
+        try { const r = await apiA('apiCorregirPlanta', reg.registroId, s); UI.toast('Planta corregida (' + r.cambios + ' campos modificados). Quedó registrado en la bitácora.', 'ok'); cc.cerrar(); alGuardar(); } catch (e) { falla(e); }
+      } }] });
+    FormPlanta.montar($('#fpc', c.el), s, vars, {});
+  },
+
+  cerrar(m, nPlantas, padre, alTerminar) {
+    const faltan = Math.max(0, m.PlantasPrevistas - nPlantas);
+    const c = UI.modal({ titulo: 'Cerrar monitoreo', html:
+      '<p><b>' + esc(m.LoteNombre) + '</b> · ' + fmtFecha(m.Fecha) + '<br><span class="muted">' + nPlantas + ' de ' + m.PlantasPrevistas + ' plantas cargadas.</span></p>' +
+      (faltan ? '<div class="banner warn">Faltan <b>' + faltan + '</b> planta(s) por cargar. Si cierra ahora, el informe se calcula con las plantas existentes.</div>' : '') +
+      '<p class="small muted">Al cerrar, se bloquea la carga, se genera el informe (con mapas de calor) y se guarda en Drive, en la carpeta del año y mes.</p>' +
+      '<div class="f"><label>Correo del Jefe de Sector / Proyecto' + (m.JefeNombre ? ' (' + esc(m.JefeNombre) + ')' : '') + '</label><input type="email" name="correo" value="' + esc(m.JefeEmail || '') + '" placeholder="jefe@inta.gob.ar">' +
+      '<div class="ay">Déjelo vacío si no quiere enviar el informe por correo ahora.</div></div>',
+      botones: [{ txt: 'Cancelar' }, { txt: 'Cerrar y generar informe', cls: 'pri', cierra: false, fn: async function (cc) {
+        const correo = leerForm(cc.body).correo.trim();
+        cc.body.innerHTML = UI.cargando('Generando informe… puede tardar unos segundos'); cc.el.querySelector('.mf').remove();
+        try {
+          const r = await apiA('apiCerrarMonitoreo', m.MonitoreoID, correo);
+          cc.body.innerHTML = '<div class="center"><div style="font-size:42px">✅</div><h3>Monitoreo cerrado</h3><p>' + (r.enviado ? 'Informe enviado a <b>' + esc(r.enviado) + '</b>.' : 'Informe generado.') + '<br><span class="muted small">Guardado en Drive (Informes / año / mes).</span></p>' +
+            (r.aviso ? '<div class="banner warn">' + esc(r.aviso) + '</div>' : '') + '<div class="row" style="justify-content:center"><button class="btn sec" id="bj">⬇ Descargar informe</button><button class="btn pri" id="bok">Listo</button></div></div>';
+          cc.q('#bj').onclick = function () { bajarArchivo(r.informeId); }; cc.q('#bok').onclick = function () { cc.cerrar(); alTerminar(); Vistas.monitoreos.cargar(); };
+        } catch (e) { falla(e); cc.cerrar(); }
+      } }] });
+  }
+};
+
+
+/* ===================== LOTES, GPS Y GOOGLE EARTH ===================== */
+const PinIcon = function () { return L.divIcon({ html: '<div style="font-size:30px;line-height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))">📍</div>', className: '', iconSize: [30, 30], iconAnchor: [15, 28] }); };
+
+Vistas.lotes = {
+  lotes: [], sectores: [], filtro: { sector: '', q: '', activos: true }, modo: 'lista', mapa: null,
+  destruir() { if (this.mapa) { try { this.mapa.remove(); } catch (e) { } this.mapa = null; } },
+
+  async render(el) {
+    this.destruir(); el.innerHTML = UI.cargando();
+    await this.cargar();
+    const F = this.filtro;
+    el.innerHTML = '<div class="hd-row"><div style="flex:1"><div class="eyebrow">Administración</div><h1 style="margin:0">Lotes y ubicación</h1></div>' +
+      '<button class="btn out" id="kml">🌍 Exportar para Google Earth (KML)</button><button class="btn pri" id="nuevo">+ Nuevo lote</button></div>' +
+      '<div class="card"><div class="filters"><div class="f"><label>Sector</label><select id="fs">' + opcionesSel(this.sectores, F.sector, 'Todos') + '</select></div>' +
+      '<div class="f"><label>Buscar</label><input type="search" id="fq" placeholder="Lote o productor" value="' + esc(F.q) + '"></div>' +
+      '<div class="f"><label>Mostrar</label><select id="fa"><option value="1">Solo activos</option><option value="0">Todos</option></select></div></div></div>' +
+      '<div class="tabs" style="margin-top:14px"><button class="tab on" data-modo="lista">📋 Lista</button><button class="tab" data-modo="mapa">🗺️ Mapa</button></div><div id="cont"></div>';
+    $('#fa', el).value = F.activos ? '1' : '0';
+    $('#fs', el).onchange = function () { F.sector = this.value; Vistas.lotes.pintar(); };
+    $('#fq', el).oninput = function () { F.q = this.value; Vistas.lotes.pintar(); };
+    $('#fa', el).onchange = function () { F.activos = this.value === '1'; Vistas.lotes.pintar(); };
+    $('#nuevo', el).onclick = function () { Vistas.lotes.form(null); };
+    $('#kml', el).onclick = async function () {
+      const b = this; b.disabled = true;
+      try {
+        const r = await apiA('apiExportarKML', {});
+        UI.modal({ titulo: 'Archivo KML listo', html: '<p>Se exportaron <b>' + r.lotes + '</b> lotes con su ubicación.</p><p class="muted small">Quedó guardado en Drive (carpeta «Mapas»). Descárguelo y ábralo con Google Earth (doble clic) o impórtelo en Google Earth web: <i>Proyectos → Importar archivo KML</i>.</p>',
+          botones: [{ txt: 'Cerrar' }, { txt: '⬇ Descargar KML', cls: 'pri', cierra: false, fn: function () { bajarArchivo(r.id); } }] });
+      } catch (e) { falla(e); } finally { b.disabled = false; }
+    };
+    $$('.tab', el).forEach(function (t) { t.onclick = function () { Vistas.lotes.modo = t.dataset.modo; $$('.tab', el).forEach(function (x) { x.classList.toggle('on', x === t); }); Vistas.lotes.pintar(); }; });
+    this.modo = 'lista'; this.pintar();
+  },
+  async cargar() {
+    try {
+      const r = await Promise.all([apiA('apiListar', 'lotes'), apiA('apiListar', 'sectores'), apiA('apiListar', 'cultivos')]);
+      this.lotes = r[0]; this.sectores = r[1]; this.cultivos = r[2];
+    } catch (e) { falla(e); }
+  },
+  filtrados() {
+    const F = this.filtro, q = F.q.toLowerCase();
+    return this.lotes.filter(function (l) { return (!F.activos || l.Activo === 'SI') && (!F.sector || l.SectorID === F.sector) && (!q || (l.Nombre + ' ' + l.Productor).toLowerCase().indexOf(q) >= 0); });
+  },
+  pintar() {
+    const cont = $('#cont'); if (!cont) return;
+    this.destruir();
+    const ls = this.filtrados();
+    if (this.modo === 'mapa') return this.pintarMapa(cont, ls);
+    cont.innerHTML = '<div class="card"><div class="tw">' + (ls.length ? '<table class="tbl"><thead><tr><th>Lote</th><th>Cultivo</th><th>Sector</th><th>Productor</th><th>Plantas</th><th>Sup. (ha)</th><th>Ubicación</th><th></th></tr></thead><tbody>' +
+      ls.map(function (l) {
+        const gps = l.Latitud !== null;
+        return '<tr' + (l.Activo !== 'SI' ? ' style="opacity:.55"' : '') + '><td><b>' + esc(l.Nombre) + '</b>' + (l.Activo !== 'SI' ? ' <span class="pill off">baja</span>' : '') + '</td><td>' + esc(l.CultivoNombre) + '</td><td>' + esc(l.SectorNombre) + '</td><td>' + esc(l.Productor) + '</td><td>' + l.Plantas + '</td><td>' + (l.SuperficieHa === null ? '' : l.SuperficieHa) + '</td>' +
+          '<td>' + (gps ? '<span class="pill ok">📍 GPS' + (l.Poligono ? ' + contorno' : '') + '</span>' : '<span class="pill warn">sin ubicación</span>') + '</td>' +
+          '<td style="text-align:right;white-space:nowrap">' + (gps ? '<a class="btn sm sec" target="_blank" rel="noopener" href="' + Mapa.earth(l.Latitud, l.Longitud) + '">🌍 Earth</a> ' : '') +
+          '<button class="btn sm out" data-ed="' + l.ID + '">Editar</button> <button class="btn sm ' + (l.Activo === 'SI' ? 'dan' : 'sec') + '" data-baja="' + l.ID + '">' + (l.Activo === 'SI' ? 'Dar de baja' : 'Reactivar') + '</button></td></tr>';
+      }).join('') + '</tbody></table>' : UI.vacio('No hay lotes. Toque «+ Nuevo lote» para crear el primero.')) + '</div></div>';
+    $$('[data-ed]', cont).forEach(function (b) { b.onclick = function () { Vistas.lotes.form(Vistas.lotes.lotes.filter(function (x) { return x.ID === b.dataset.ed; })[0]); }; });
+    $$('[data-baja]', cont).forEach(function (b) {
+      b.onclick = async function () {
+        const l = Vistas.lotes.lotes.filter(function (x) { return x.ID === b.dataset.baja; })[0], baja = l.Activo === 'SI';
+        if (baja && !(await UI.confirmar('¿Dar de baja el lote «' + l.Nombre + '»? Ya no aparecerá para cargar datos, pero su historial se conserva.', { si: 'Dar de baja', peligro: true }))) return;
+        try { await apiA('apiCambiarEstado', 'lotes', l.ID, !baja); UI.toast(baja ? 'Lote dado de baja.' : 'Lote reactivado.', 'ok'); await Vistas.lotes.cargar(); Vistas.lotes.pintar(); } catch (e) { falla(e); }
+      };
+    });
+  },
+  pintarMapa(cont, ls) {
+    const conGps = ls.filter(function (l) { return l.Latitud !== null; });
+    cont.innerHTML = '<div class="card">' + (Mapa.ok() ? '<div id="mapa" class="map l"></div>' : Mapa.sinMapa()) +
+      '<p class="small muted" style="margin:10px 0 0">' + conGps.length + ' de ' + ls.length + ' lotes tienen ubicación. Toque un lote para ver sus datos y abrirlo en Google Earth.</p></div>';
+    if (!Mapa.ok()) return;
+    const m = this.mapa = Mapa.crear($('#mapa', cont), CENTRO_BV, 11), grupo = [];
+    const sectIdx = {}; this.sectores.forEach(function (s, i) { sectIdx[s.ID] = i; });
+    conGps.forEach(function (l) {
+      const col = Color.paleta[(sectIdx[l.SectorID] || 0) % Color.paleta.length];
+      const pop = '<b>' + esc(l.Nombre) + '</b><br>' + esc(l.SectorNombre) + (l.Productor ? ' · ' + esc(l.Productor) : '') + '<br>' + l.Plantas + ' plantas' + (l.SuperficieHa ? ' · ' + l.SuperficieHa + ' ha' : '') +
+        '<br><a target="_blank" rel="noopener" href="' + Mapa.earth(l.Latitud, l.Longitud) + '">🌍 Google Earth</a> · <a target="_blank" rel="noopener" href="' + Mapa.gmapsSat(l.Latitud, l.Longitud) + '">Google Maps</a>';
+      if (l.Poligono) L.polygon(l.Poligono, { color: col, weight: 2, fillOpacity: .25 }).addTo(m).bindPopup(pop);
+      const mk = L.circleMarker([l.Latitud, l.Longitud], { radius: 9, color: '#fff', weight: 2, fillColor: col, fillOpacity: .95 }).addTo(m).bindPopup(pop);
+      L.marker([l.Latitud, l.Longitud], { icon: L.divIcon({ html: '<div style="background:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:600;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.4);transform:translate(12px,-8px)">' + esc(l.Nombre) + '</div>', className: '', iconSize: [0, 0] }), interactive: false }).addTo(m);
+      grupo.push([l.Latitud, l.Longitud]);
+    });
+    if (grupo.length) m.fitBounds(grupo, { padding: [40, 40], maxZoom: 16 });
+  },
+
+  /* ---------- Alta / modificación ---------- */
+  form(l) {
+    const nuevo = !l, v = l || { Nombre: '', SectorID: this.filtro.sector || '', CultivoID: '', Productor: '', Plantas: 0, PlantasMonitoreo: 10, SuperficieHa: '', Variedad: '', Latitud: null, Longitud: null, Poligono: null, Notas: '' };
+    const self = this;
+    let pick = null;
+    const ctl = UI.modal({ titulo: nuevo ? 'Nuevo lote' : 'Editar lote', ancho: 'xw', html:
+      '<div class="fr"><div class="f"><label>Nombre del lote *</label><input type="text" name="Nombre" value="' + esc(v.Nombre) + '" maxlength="100"></div>' +
+      '<div class="f"><label>Sector *</label><select name="SectorID">' + opcionesSel(this.sectores.filter(function (s) { return s.Activo === 'SI' || s.ID === v.SectorID; }), v.SectorID, 'Elegir sector…') + '</select></div></div>' +
+      '<div class="fr"><div class="f"><label>Cultivo *</label><select name="CultivoID">' + opcionesSel(this.cultivos.filter(function (c) { return c.Activo === 'SI' || c.ID === v.CultivoID; }), v.CultivoID, 'Elegir cultivo…') + '</select></div><div></div></div>' +
+      '<div class="fr3"><div class="f"><label>Productor</label><input type="text" name="Productor" value="' + esc(v.Productor) + '"></div>' +
+      '<div class="f"><label>Plantas del lote</label><input type="number" min="0" inputmode="numeric" name="Plantas" value="' + v.Plantas + '"></div>' +
+      '<div class="f"><label>Plantas a monitorear</label><input type="number" min="1" max="500" inputmode="numeric" name="PlantasMonitoreo" value="' + v.PlantasMonitoreo + '"></div></div>' +
+      '<div class="fr3"><div class="f"><label>Superficie (ha)</label><input type="text" inputmode="decimal" name="SuperficieHa" value="' + (v.SuperficieHa === null ? '' : v.SuperficieHa) + '"></div>' +
+      '<div class="f"><label>Variedad</label><input type="text" name="Variedad" value="' + esc(v.Variedad) + '"></div><div class="f"><label>Notas</label><input type="text" name="Notas" value="' + esc(v.Notas) + '"></div></div>' +
+      '<h4>📍 Ubicación del lote (GPS)</h4>' +
+      '<div class="fr3"><div class="f"><label>Latitud</label><input type="text" inputmode="decimal" id="plat" placeholder="-28.5058"></div><div class="f"><label>Longitud</label><input type="text" inputmode="decimal" id="plng" placeholder="-59.0524"></div>' +
+      '<div class="f"><label>Pegar coordenadas o enlace de Google Maps</label><div class="row" style="flex-wrap:nowrap"><input type="text" id="ppeg" placeholder="-28.50, -59.05"><button type="button" class="btn out" id="paplicar">Usar</button></div></div></div>' +
+      '<div class="row" style="margin-bottom:8px"><button type="button" class="btn sm sec" id="pgps">🛰️ Usar mi ubicación (GPS)</button><button type="button" class="btn sm out" id="pdib">✏️ Dibujar contorno</button>' +
+      '<button type="button" class="btn sm out hide" id="pund">↶ Deshacer punto</button><button type="button" class="btn sm out" id="pbor">Borrar contorno</button>' +
+      '<span class="right small" id="plinks"></span></div>' +
+      (Mapa.ok() ? '<div class="map s" id="pmap"></div><p class="small muted" style="margin:8px 0 0" id="pay">Toque el mapa para marcar el centro del lote, o arrastre el pin. Para el contorno, active «Dibujar contorno» y toque las esquinas del lote.</p>' : Mapa.sinMapa()),
+      botones: [{ txt: 'Cancelar' }, { txt: nuevo ? 'Crear lote' : 'Guardar cambios', cls: 'pri', cierra: false, fn: async function (c) {
+        const d = leerForm(c.body), g = pick.leer();
+        if (g.error) { UI.toast(g.error, 'bad'); return; }
+        d.Latitud = g.lat === null ? '' : g.lat; d.Longitud = g.lng === null ? '' : g.lng; d.Poligono = g.poli; if (!nuevo) d.ID = l.ID;
+        d.SuperficieHa = String(d.SuperficieHa).replace(',', '.');
+        try { await apiA('apiGuardar', 'lotes', d); UI.toast(nuevo ? 'Lote creado.' : 'Lote actualizado.', 'ok'); c.cerrar(); await self.cargar(); self.pintar(); } catch (e) { falla(e); }
+      } }],
+      onClose: function () { if (pick) pick.destruir(); }
+    });
+    pick = this.picker(ctl, v);
+  },
+
+  picker(ctl, v) {
+    const st = { lat: v.Latitud, lng: v.Longitud, poli: v.Poligono ? v.Poligono.map(function (p) { return p.slice(); }) : [], dib: false };
+    const ilat = ctl.q('#plat'), ilng = ctl.q('#plng');
+    let map = null, marker = null, poly = null, verts = [];
+    const links = function () {
+      ctl.q('#plinks').innerHTML = st.lat !== null ? '<a target="_blank" rel="noopener" href="' + Mapa.earth(st.lat, st.lng) + '">🌍 Abrir en Google Earth</a> · <a target="_blank" rel="noopener" href="' + Mapa.gmapsSat(st.lat, st.lng) + '">Google Maps</a>' : '';
+    };
+    const setPunto = function (la, lo, centrar) {
+      st.lat = Math.round(la * 1e6) / 1e6; st.lng = Math.round(lo * 1e6) / 1e6; ilat.value = st.lat; ilng.value = st.lng;
+      if (map) {
+        if (marker) marker.setLatLng([st.lat, st.lng]);
+        else { marker = L.marker([st.lat, st.lng], { draggable: true, icon: PinIcon() }).addTo(map); marker.on('dragend', function (e) { const p = e.target.getLatLng(); setPunto(p.lat, p.lng); }); }
+        if (centrar) map.setView([st.lat, st.lng], Math.max(map.getZoom(), 17));
+      }
+      links();
+    };
+    const pintarPoli = function () {
+      if (!map) return;
+      if (poly) { map.removeLayer(poly); poly = null; }
+      verts.forEach(function (x) { map.removeLayer(x); }); verts = [];
+      if (st.poli.length > 2) poly = L.polygon(st.poli, { color: '#C1541F', weight: 2, fillOpacity: .22 }).addTo(map);
+      else if (st.poli.length === 2) poly = L.polyline(st.poli, { color: '#C1541F', weight: 2 }).addTo(map);
+      st.poli.forEach(function (p) { verts.push(L.circleMarker(p, { radius: 5, color: '#fff', weight: 2, fillColor: '#C1541F', fillOpacity: 1 }).addTo(map)); });
+      ctl.q('#pund').classList.toggle('hide', !st.dib || !st.poli.length);
+    };
+    if (Mapa.ok() && ctl.q('#pmap')) {
+      map = Mapa.crear(ctl.q('#pmap'), st.lat !== null ? [st.lat, st.lng] : CENTRO_BV, st.lat !== null ? 17 : 12);
+      map.on('click', function (e) { if (st.dib) { st.poli.push([e.latlng.lat, e.latlng.lng]); pintarPoli(); } else setPunto(e.latlng.lat, e.latlng.lng); });
+      setTimeout(function () { if (map) { try { map.invalidateSize(); } catch (e) { } } }, 250);
+    }
+    if (st.lat !== null) setPunto(st.lat, st.lng, false);
+    pintarPoli(); if (map && st.poli.length > 2) map.fitBounds(st.poli, { padding: [30, 30] });
+    const desdeInputs = function () { const a = Mapa.parsear(ilat.value + ',' + ilng.value); if (a) setPunto(a[0], a[1], true); };
+    ilat.onchange = desdeInputs; ilng.onchange = desdeInputs;
+    ctl.q('#paplicar').onclick = function () { const a = Mapa.parsear(ctl.q('#ppeg').value); if (a) { setPunto(a[0], a[1], true); ctl.q('#ppeg').value = ''; } else UI.toast('No pude leer esas coordenadas. Ejemplo: -28.5058, -59.0524', 'bad'); };
+    ctl.q('#pgps').onclick = function () {
+      if (!navigator.geolocation) { UI.toast('Este dispositivo no permite obtener el GPS desde el navegador.', 'bad'); return; }
+      UI.toast('Buscando su ubicación…');
+      navigator.geolocation.getCurrentPosition(function (p) { setPunto(p.coords.latitude, p.coords.longitude, true); UI.toast('Ubicación tomada (precisión ~' + Math.round(p.coords.accuracy) + ' m).', 'ok'); },
+        function () { UI.toast('No se pudo usar el GPS desde esta página. Toque el mapa o pegue las coordenadas copiadas de Google Earth/Maps.', 'bad'); }, { enableHighAccuracy: true, timeout: 15000 });
+    };
+    ctl.q('#pdib').onclick = function () {
+      st.dib = !st.dib; this.classList.toggle('pri', st.dib); this.classList.toggle('out', !st.dib);
+      this.textContent = st.dib ? '✔ Terminar contorno' : '✏️ Dibujar contorno';
+      if (ctl.q('#pay')) ctl.q('#pay').textContent = st.dib ? 'Modo contorno: toque las esquinas del lote en orden (mínimo 3 puntos).' : 'Toque el mapa para marcar el centro del lote, o arrastre el pin.';
+      pintarPoli();
+    };
+    ctl.q('#pund').onclick = function () { st.poli.pop(); pintarPoli(); };
+    ctl.q('#pbor').onclick = function () { st.poli = []; pintarPoli(); };
+    return {
+      leer() {
+        const a = Mapa.parsear(ilat.value + ',' + ilng.value);
+        if ((ilat.value.trim() || ilng.value.trim()) && !a) return { error: 'La latitud y la longitud no son válidas.' };
+        if (st.poli.length && st.poli.length < 3) return { error: 'El contorno necesita al menos 3 puntos (o bórrelo).' };
+        return { lat: a ? a[0] : null, lng: a ? a[1] : null, poli: st.poli.length ? st.poli.map(function (p) { return [Math.round(p[0] * 1e6) / 1e6, Math.round(p[1] * 1e6) / 1e6]; }) : null };
+      },
+      destruir() { if (map) { try { map.remove(); } catch (e) { } map = null; } }
+    };
+  }
+};
+
+
+/* ============== ABM: SECTORES · MONITOREADORES · USUARIOS ============== */
+// Una sola plantilla para las tres pantallas: lista con búsqueda, alta,
+// modificación, baja/alta lógica (el historial nunca se borra).
+function crearVistaCatalogo(ent, cfg) {
+  return {
+    lista: [], aux: {}, q: '', activos: true,
+    async render(el) {
+      el.innerHTML = UI.cargando();
+      await this.cargar();
+      el.innerHTML = '<div class="hd-row"><div style="flex:1"><div class="eyebrow">Administración</div><h1 style="margin:0">' + cfg.titulo + '</h1>' +
+        '<p class="lead">' + cfg.ayuda + '</p></div><button class="btn pri" id="nuevo">+ ' + cfg.nuevo + '</button></div>' +
+        '<div class="card"><div class="filters"><div class="f"><label>Buscar</label><input type="search" id="fq" placeholder="Escriba para filtrar" value="' + esc(this.q) + '"></div>' +
+        '<div class="f"><label>Mostrar</label><select id="fa"><option value="1">Solo activos</option><option value="0">Todos (incluye bajas)</option></select></div></div></div>' +
+        '<div class="card" style="margin-top:14px"><div class="tw" id="cont"></div></div>';
+      $('#fa', el).value = this.activos ? '1' : '0';
+      const self = this;
+      $('#fq', el).oninput = function () { self.q = this.value; self.pintar(); };
+      $('#fa', el).onchange = function () { self.activos = this.value === '1'; self.pintar(); };
+      $('#nuevo', el).onclick = function () { self.form(null); };
+      this.pintar();
+    },
+    async cargar() {
+      try {
+        const llamadas = [apiA('apiListar', ent)].concat((cfg.aux || []).map(function (a) { return apiA('apiListar', a); }));
+        const r = await Promise.all(llamadas);
+        this.lista = r[0]; this.aux = {};
+        (cfg.aux || []).forEach(function (a, i) { Vistas[ent].aux[a] = r[i + 1]; });
+      } catch (e) { falla(e); }
+    },
+    filtrados() {
+      const q = this.q.toLowerCase(), act = this.activos;
+      return this.lista.filter(function (x) {
+        return (!act || x.Activo === 'SI') && (!q || cfg.cols.map(function (c) { return String(x[c.k] || ''); }).join(' ').toLowerCase().indexOf(q) >= 0);
+      });
+    },
+    pintar() {
+      const cont = $('#cont'); if (!cont) return;
+      const ls = this.filtrados(), self = this;
+      if (!ls.length) { cont.innerHTML = UI.vacio('No hay ' + cfg.plural + ' para mostrar. Toque «+ ' + cfg.nuevo + '» para crear uno.'); return; }
+      cont.innerHTML = '<table class="tbl"><thead><tr>' + cfg.cols.map(function (c) { return '<th>' + c.t + '</th>'; }).join('') + '<th>Estado</th><th></th></tr></thead><tbody>' +
+        ls.map(function (x) {
+          const baja = x.Activo !== 'SI', permitido = x.editable !== false;
+          return '<tr' + (baja ? ' style="opacity:.55"' : '') + '>' + cfg.cols.map(function (c) { return '<td>' + (c.f ? c.f(x, self) : esc(x[c.k] || '')) + '</td>'; }).join('') +
+            '<td>' + (baja ? '<span class="pill off">baja</span>' : '<span class="pill ok"><span class="dot"></span>activo</span>') + '</td>' +
+            '<td style="text-align:right;white-space:nowrap">' + (permitido ?
+              '<button class="btn sm out" data-ed="' + x.ID + '">Editar</button> ' +
+              (cfg.extra && !baja ? cfg.extra.map(function (e) { return '<button class="btn sm sec" data-ex="' + e.id + '" data-id="' + x.ID + '">' + e.txt + '</button> '; }).join('') : '') +
+              '<button class="btn sm ' + (baja ? 'sec' : 'dan') + '" data-baja="' + x.ID + '">' + (baja ? 'Reactivar' : 'Dar de baja') + '</button>'
+              : '<span class="small muted">Solo el Super Administrador</span>') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+      const buscar = function (id) { return self.lista.filter(function (x) { return x.ID === id; })[0]; };
+      $$('[data-ed]', cont).forEach(function (b) { b.onclick = function () { self.form(buscar(b.dataset.ed)); }; });
+      $$('[data-ex]', cont).forEach(function (b) {
+        b.onclick = async function () {
+          const e = cfg.extra.filter(function (z) { return z.id === b.dataset.ex; })[0];
+          try { await e.fn(buscar(b.dataset.id), self); } catch (err) { falla(err); }
+        };
+      });
+      $$('[data-baja]', cont).forEach(function (b) {
+        b.onclick = async function () {
+          const x = buscar(b.dataset.baja), baja = x.Activo === 'SI';
+          if (baja && !(await UI.confirmar('¿Dar de baja a «' + (x.Nombre || x.Email) + '»? ' + cfg.avisoBaja, { si: 'Dar de baja', peligro: true }))) return;
+          try { await apiA('apiCambiarEstado', ent, x.ID, !baja); UI.toast(baja ? 'Dado de baja.' : 'Reactivado.', 'ok'); await self.cargar(); self.pintar(); } catch (e) { falla(e); }
+        };
+      });
+    },
+    form(x) {
+      const nuevo = !x, v = x || cfg.vacio(), self = this;
+      UI.modal({
+        titulo: (nuevo ? 'Nuevo ' : 'Editar ') + cfg.singular, html: cfg.campos(v, nuevo, this).replace('<form', '<div') + '',
+        botones: [{ txt: 'Cancelar' }, { txt: nuevo ? 'Crear' : 'Guardar cambios', cls: 'pri', cierra: false, fn: async function (c) {
+          const d = leerForm(c.body); if (!nuevo) d.ID = x.ID;
+          try { await apiA('apiGuardar', ent, d); UI.toast(nuevo ? 'Creado correctamente.' : 'Cambios guardados.', 'ok'); c.cerrar(); await self.cargar(); self.pintar(); } catch (e) { falla(e); }
+        } }]
+      });
+    }
+  };
+}
+
+const optsRol = function (valor) {
+  const lista = tieneRol('superadmin') ? ['monitoreador', 'admin', 'superadmin'] : ['monitoreador'];
+  return lista.map(function (r) { return '<option value="' + r + '"' + (r === valor ? ' selected' : '') + '>' + rolTxt(r) + '</option>'; }).join('');
+};
+
+Vistas.sectores = crearVistaCatalogo('sectores', {
+  titulo: 'Sectores', singular: 'sector', plural: 'sectores', nuevo: 'Nuevo sector',
+  ayuda: 'Agrupan los lotes. Cada sector puede tener un jefe: su correo se propone automáticamente al cerrar un monitoreo.',
+  avisoBaja: 'Sus lotes y su historial se conservan.',
+  cols: [{ k: 'Nombre', t: 'Sector', f: function (x) { return '<b>' + esc(x.Nombre) + '</b><div class="small muted">' + esc(x.Descripcion) + '</div>'; } },
+    { k: 'JefeNombre', t: 'Jefe de sector / proyecto' }, { k: 'JefeEmail', t: 'Correo del jefe' }],
+  vacio: function () { return { Nombre: '', Descripcion: '', JefeNombre: '', JefeEmail: '' }; },
+  campos: function (v) {
+    return '<div class="f"><label>Nombre del sector *</label><input type="text" name="Nombre" maxlength="80" value="' + esc(v.Nombre) + '"></div>' +
+      '<div class="f"><label>Descripción</label><input type="text" name="Descripcion" maxlength="200" value="' + esc(v.Descripcion) + '"></div>' +
+      '<div class="fr"><div class="f"><label>Jefe de sector / proyecto</label><input type="text" name="JefeNombre" value="' + esc(v.JefeNombre) + '"></div>' +
+      '<div class="f"><label>Correo del jefe</label><input type="email" name="JefeEmail" value="' + esc(v.JefeEmail) + '" placeholder="jefe@inta.gob.ar"></div></div>';
+  }
+});
+
+Vistas.monitoreadores = crearVistaCatalogo('monitoreadores', {
+  titulo: 'Monitoreadores', singular: 'monitoreador', plural: 'monitoreadores', nuevo: 'Nuevo monitoreador', aux: ['sectores'],
+  ayuda: 'Personas que salen al campo. Aparecen para elegir al cargar datos. No es lo mismo que un usuario: un usuario es quien entra al sistema.',
+  avisoBaja: 'Ya no aparecerá para elegir, pero su nombre queda en los monitoreos anteriores.',
+  cols: [{ k: 'Nombre', t: 'Nombre', f: function (x) { return '<b>' + esc(x.Nombre) + '</b>'; } }, { k: 'SectorNombre', t: 'Sector' },
+    { k: 'Telefono', t: 'Teléfono' }, { k: 'Email', t: 'Correo' }],
+  vacio: function () { return { Nombre: '', SectorID: '', Telefono: '', Email: '' }; },
+  campos: function (v, nuevo, vista) {
+    return '<div class="f"><label>Nombre y apellido *</label><input type="text" name="Nombre" maxlength="100" value="' + esc(v.Nombre) + '"></div>' +
+      '<div class="f"><label>Sector</label><select name="SectorID">' + opcionesSel(vista.aux.sectores.filter(function (s) { return s.Activo === 'SI' || s.ID === v.SectorID; }), v.SectorID, 'Sin sector') + '</select></div>' +
+      '<div class="fr"><div class="f"><label>Teléfono</label><input type="tel" name="Telefono" value="' + esc(v.Telefono) + '"></div>' +
+      '<div class="f"><label>Correo (opcional)</label><input type="email" name="Email" value="' + esc(v.Email) + '"></div></div>';
+  }
+});
+
+Vistas.usuarios = crearVistaCatalogo('usuarios', {
+  titulo: 'Usuarios', singular: 'usuario', plural: 'usuarios', nuevo: 'Nuevo usuario', aux: ['monitoreadores'],
+  ayuda: 'Quienes pueden entrar al sistema. Entran con su correo y un código que les llega por mail: no necesitan contraseña ni acceso a Drive.',
+  avisoBaja: 'Perderá el acceso de inmediato.',
+  cols: [{ k: 'Nombre', t: 'Nombre', f: function (x) { return '<b>' + esc(x.Nombre) + '</b><div class="small muted">' + esc(x.Email) + '</div>'; } },
+    { k: 'Rol', t: 'Rol', f: function (x) { return '<span class="pill ' + (x.Rol === 'monitoreador' ? 'info' : 'warn') + '">' + esc(rolTxt(x.Rol)) + '</span>'; } },
+    { k: 'MonitoreadorNombre', t: 'Monitoreador vinculado' },
+    { k: 'UltimoAcceso', t: 'Último acceso', f: function (x) { return x.UltimoAcceso ? '<span class="small">' + fmtFechaHora(x.UltimoAcceso.replace(' ', 'T')) + '</span>' : '<span class="small muted">nunca</span>'; } }],
+  vacio: function () { return { Nombre: '', Email: '', Rol: 'monitoreador', MonitoreadorID: '' }; },
+  campos: function (v, nuevo, vista) {
+    return '<div class="f"><label>Nombre y apellido *</label><input type="text" name="Nombre" maxlength="100" value="' + esc(v.Nombre) + '"></div>' +
+      '<div class="f"><label>Correo de Gmail *</label><input type="email" name="Email" value="' + esc(v.Email) + '" placeholder="nombre@gmail.com"><div class="ay">Con este correo va a ingresar y le llegan los códigos.</div></div>' +
+      '<div class="fr"><div class="f"><label>Rol</label><select name="Rol">' + optsRol(v.Rol) + '</select>' +
+      '<div class="ay">Monitoreador: carga datos. Administrador: además corrige, cierra monitoreos y ve informes. Super Administrador: todo.</div></div>' +
+      '<div class="f"><label>Monitoreador vinculado</label><select name="MonitoreadorID">' + opcionesSel(vista.aux.monitoreadores.filter(function (m) { return m.Activo === 'SI' || m.ID === v.MonitoreadorID; }), v.MonitoreadorID, 'Ninguno') + '</select>' +
+      '<div class="ay">Así se completa solo su nombre al cargar datos.</div></div></div>' +
+      (nuevo ? '<label class="chk"><input type="checkbox" name="invitar" checked> Enviarle un correo de bienvenida con el enlace al sistema</label>' : '');
+  },
+  extra: [{ id: 'ses', txt: 'Cerrar sesiones', fn: async function (x) {
+    if (!(await UI.confirmar('¿Cerrar todas las sesiones abiertas de ' + x.Nombre + '? Tendrá que volver a ingresar con un código.', { si: 'Cerrar sesiones' }))) return;
+    await apiA('apiCerrarSesionesUsuario', x.ID); UI.toast('Sesiones cerradas.', 'ok');
+  } }]
+});
+
+
+/* ===================== CULTIVOS, PLAGAS Y PROTOCOLOS ===================== */
+Vistas.cultivos = crearVistaCatalogo('cultivos', {
+  titulo: 'Cultivos', singular: 'cultivo', plural: 'cultivos', nuevo: 'Nuevo cultivo',
+  ayuda: 'Cada cultivo (cítricos, pimiento, tomate…) tiene su propio protocolo: lo que se mide en cada planta. Para sumar un cultivo nuevo, créelo y cópiele el protocolo de otro.',
+  avisoBaja: 'Sus lotes dejan de aparecer para cargar; el historial se conserva.',
+  cols: [{ k: 'Nombre', t: 'Cultivo', f: function (x) { return '<b>' + esc(x.Nombre) + '</b>'; } },
+    { k: 'Perfil', t: 'Tipo', f: function (x) { return x.Perfil === 'horticola' ? 'Hortícola' : 'Árboles / frutales'; } },
+    { k: 'PlantasPorDefecto', t: 'Plantas a monitorear' }, { k: 'variables', t: 'Variables del protocolo' }],
+  vacio: function () { return { Nombre: '', Perfil: 'arbol', PlantasPorDefecto: 10 }; },
+  campos: function (v) {
+    return '<div class="f"><label>Nombre del cultivo *</label><input type="text" name="Nombre" maxlength="60" value="' + esc(v.Nombre) + '" placeholder="Ej.: Pimiento, Limón, Frutilla"></div>' +
+      '<div class="fr"><div class="f"><label>Tipo</label><select name="Perfil"><option value="arbol"' + (v.Perfil === 'arbol' ? ' selected' : '') + '>Árboles / frutales</option><option value="horticola"' + (v.Perfil === 'horticola' ? ' selected' : '') + '>Hortícola</option></select></div>' +
+      '<div class="f"><label>Plantas a monitorear por lote</label><input type="number" min="1" max="500" name="PlantasPorDefecto" value="' + v.PlantasPorDefecto + '"></div></div>';
+  },
+  extra: [{ id: 'prot', txt: 'Protocolo', fn: function (x) { Nav.ir('protocolo', { cultivoId: x.ID }); } }]
+});
+
+Vistas.plagas = crearVistaCatalogo('plagas', {
+  titulo: 'Plagas y enfermedades', singular: 'plaga o enfermedad', plural: 'plagas', nuevo: 'Nueva plaga',
+  ayuda: 'Catálogo de plagas y enfermedades. Si aparece una nueva (por ejemplo HLB), cárguela acá, márquela como «crítica» y agréguela al protocolo del cultivo: no hace falta tocar el sistema.',
+  avisoBaja: 'Deja de usarse para alertas; el historial se conserva.',
+  cols: [{ k: 'Nombre', t: 'Nombre', f: function (x) { return '<b>' + esc(x.Nombre) + '</b>' + (x.NombreCientifico ? '<div class="small muted"><i>' + esc(x.NombreCientifico) + '</i></div>' : ''); } },
+    { k: 'Tipo', t: 'Tipo' },
+    { k: 'Critica', t: 'Crítica', f: function (x) { return x.Critica === 'SI' ? '<span class="pill dan">⚠ alerta</span>' : '<span class="muted small">–</span>'; } },
+    { k: 'ImagenURL', t: 'Imagen / video', f: function (x) { return (x.ImagenURL ? '🖼️ ' : '') + (x.VideoURL ? '▶️' : '') || '<span class="muted small">–</span>'; } }],
+  vacio: function () { return { Nombre: '', NombreCientifico: '', Tipo: 'Plaga', Descripcion: '', ImagenURL: '', VideoURL: '', Critica: 'NO' }; },
+  campos: function (v) {
+    const tipos = ['Insecto', 'Ácaro', 'Enfermedad', 'Plaga', 'Enemigo natural', 'Otro'];
+    return '<div class="fr"><div class="f"><label>Nombre *</label><input type="text" name="Nombre" maxlength="80" value="' + esc(v.Nombre) + '"></div>' +
+      '<div class="f"><label>Nombre científico</label><input type="text" name="NombreCientifico" maxlength="100" value="' + esc(v.NombreCientifico) + '"></div></div>' +
+      '<div class="fr"><div class="f"><label>Tipo</label><select name="Tipo">' + tipos.map(function (t) { return '<option' + (t === v.Tipo ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div><div></div></div>' +
+      '<div class="f"><label>Cómo reconocerla</label><textarea name="Descripcion" maxlength="400">' + esc(v.Descripcion) + '</textarea></div>' +
+      '<div class="fr"><div class="f"><label>Imagen (enlace https)</label><input type="url" name="ImagenURL" value="' + esc(v.ImagenURL) + '" placeholder="https://…"></div>' +
+      '<div class="f"><label>Video (enlace https)</label><input type="url" name="VideoURL" value="' + esc(v.VideoURL) + '" placeholder="https://youtube.com/…"></div></div>' +
+      '<label class="chk"><input type="checkbox" name="Critica"' + (v.Critica === 'SI' ? ' checked' : '') + '> <b>Plaga crítica</b>: si se detecta, avisar de inmediato por correo (ej.: HLB)</label>';
+  }
+});
+
+Vistas.protocolo = {
+  cultivos: [], plagas: [], cid: '', vars: [],
+  async render(el, params) {
+    el.innerHTML = UI.cargando();
+    try {
+      const r = await Promise.all([apiA('apiListar', 'cultivos'), apiA('apiListar', 'plagas')]);
+      this.cultivos = r[0]; this.plagas = r[1];
+    } catch (e) { el.innerHTML = ''; return falla(e); }
+    if (params && params.cultivoId) this.cid = params.cultivoId;
+    if (!this.cid && this.cultivos.length) this.cid = this.cultivos[0].ID;
+    const self = this;
+    el.innerHTML = '<div class="hd"><div class="eyebrow">Administración</div><h1>Protocolo de monitoreo</h1><p class="lead">Lo que se mide en cada planta de este cultivo. Los cambios se ven en el formulario de carga la próxima vez que el celular se conecte.</p></div>' +
+      '<div class="card"><div class="row"><div class="f" style="margin:0;min-width:240px"><label>Cultivo</label><select id="pc">' + opcionesSel(this.cultivos.filter(function (c) { return c.Activo === 'SI'; }), this.cid) + '</select></div>' +
+      '<button class="btn pri right" id="pnueva">+ Agregar variable</button><button class="btn out" id="pclon">Copiar protocolo de otro cultivo</button></div></div><div class="card" style="margin-top:14px"><div class="tw" id="pl"></div></div>';
+    $('#pc', el).onchange = function () { self.cid = this.value; self.cargar(); };
+    $('#pnueva', el).onclick = function () { self.form(null); };
+    $('#pclon', el).onclick = function () { self.clonar(); };
+    await this.cargar();
+  },
+  async cargar() {
+    const box = $('#pl'); if (!box || !this.cid) { if (box) box.innerHTML = UI.vacio('Primero cree un cultivo.'); return; }
+    try { this.vars = await apiA('apiListar', 'variables', { cultivoId: this.cid }); } catch (e) { box.innerHTML = ''; return falla(e); }
+    const self = this, pl = {}; this.plagas.forEach(function (p) { pl[p.ID] = p; });
+    const tipoTxt = { matriz: 'Marcas por repetición', presencia: 'Presencia (Sí/No)', conteo: 'Conteo', severidad: 'Severidad' };
+    box.innerHTML = this.vars.length ? '<table class="tbl"><thead><tr><th>Orden</th><th>Qué se mide</th><th>Cómo</th><th>Plaga vinculada</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      this.vars.map(function (v, i) {
+        const baja = v.Activo !== 'SI', p = pl[v.PlagaID];
+        const det = v.Tipo === 'matriz' ? v.Reps + ' repeticiones' + (v.Columnas.length ? ' · ' + esc(v.Columnas.join(' / ')) : '') : v.Tipo === 'severidad' ? 'niveles 0 a ' + v.Escala : '';
+        return '<tr' + (baja ? ' style="opacity:.55"' : '') + '><td class="nowrap"><button class="btn sm out" data-up="' + i + '"' + (i === 0 ? ' disabled' : '') + '>↑</button> <button class="btn sm out" data-dn="' + i + '"' + (i === self.vars.length - 1 ? ' disabled' : '') + '>↓</button></td>' +
+          '<td><b>' + esc(v.Etiqueta) + '</b><div class="small muted">' + esc(v.Grupo) + '</div></td><td>' + tipoTxt[v.Tipo] + '<div class="small muted">' + det + '</div></td>' +
+          '<td>' + (p ? esc(p.Nombre) + (p.Critica === 'SI' ? ' <span class="pill dan">⚠</span>' : '') : '<span class="muted small">–</span>') + '</td>' +
+          '<td>' + (baja ? '<span class="pill off">baja</span>' : '<span class="pill ok"><span class="dot"></span>activa</span>') + '</td>' +
+          '<td style="text-align:right;white-space:nowrap"><button class="btn sm out" data-ed="' + v.ID + '">Editar</button> <button class="btn sm ' + (baja ? 'sec' : 'dan') + '" data-baja="' + v.ID + '">' + (baja ? 'Reactivar' : 'Dar de baja') + '</button></td></tr>';
+      }).join('') + '</tbody></table>' : UI.vacio('Este cultivo no tiene variables. Agregue una o copie el protocolo de otro cultivo.');
+    const mover = async function (i, d) {
+      const ids = self.vars.map(function (v) { return v.ID; }); const t = ids[i]; ids[i] = ids[i + d]; ids[i + d] = t;
+      try { await apiA('apiOrdenarVariables', self.cid, ids); await self.cargar(); } catch (e) { falla(e); }
+    };
+    $$('[data-up]', box).forEach(function (b) { b.onclick = function () { mover(+b.dataset.up, -1); }; });
+    $$('[data-dn]', box).forEach(function (b) { b.onclick = function () { mover(+b.dataset.dn, 1); }; });
+    $$('[data-ed]', box).forEach(function (b) { b.onclick = function () { self.form(self.vars.filter(function (v) { return v.ID === b.dataset.ed; })[0]); }; });
+    $$('[data-baja]', box).forEach(function (b) {
+      b.onclick = async function () {
+        const v = self.vars.filter(function (x) { return x.ID === b.dataset.baja; })[0], baja = v.Activo === 'SI';
+        if (baja && !(await UI.confirmar('¿Dar de baja «' + v.Etiqueta + '»? Deja de pedirse en el formulario; lo ya cargado se conserva.', { si: 'Dar de baja', peligro: true }))) return;
+        try { await apiA('apiCambiarEstado', 'variables', v.ID, !baja); await self.cargar(); } catch (e) { falla(e); }
+      };
+    });
+  },
+  form(v) {
+    const nuevo = !v, self = this, x = v || { Etiqueta: '', Grupo: '', Tipo: 'presencia', Reps: 5, Columnas: [], Escala: 3, PlagaID: '', Corto: '', Ayuda: '' };
+    const c = UI.modal({ titulo: nuevo ? 'Nueva variable' : 'Editar variable', ancho: 'w', html:
+      '<div class="fr"><div class="f"><label>Qué se mide *</label><input type="text" name="Etiqueta" maxlength="80" value="' + esc(x.Etiqueta) + '" placeholder="Ej.: Trips, HLB, Oídio"></div>' +
+      '<div class="f"><label>Grupo (título en el formulario)</label><input type="text" name="Grupo" maxlength="40" value="' + esc(x.Grupo) + '" placeholder="Plagas, Enfermedades, Enemigos naturales"></div></div>' +
+      '<div class="fr"><div class="f"><label>Cómo se mide *</label><select name="Tipo" id="vt">' +
+      [['presencia', 'Presencia: hay / no hay'], ['severidad', 'Severidad: nivel 0, 1, 2, 3…'], ['matriz', 'Marcas por repetición (como en cítricos)'], ['conteo', 'Conteo: cantidad']].map(function (t) { return '<option value="' + t[0] + '"' + (t[0] === x.Tipo ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="f"><label>Plaga o enfermedad vinculada</label><select name="PlagaID">' + opcionesSel(this.plagas.filter(function (p) { return p.Activo === 'SI' || p.ID === x.PlagaID; }), x.PlagaID, 'Ninguna') + '</select><div class="ay">Si es crítica, se generan alertas.</div></div></div>' +
+      '<div class="fr" id="vm"><div class="f"><label>Repeticiones</label><input type="number" min="1" max="10" name="Reps" value="' + (x.Reps || 5) + '"></div><div class="f"><label>Columnas (separadas con coma)</label><input type="text" name="Columnas" value="' + esc((x.Columnas || []).join(', ')) + '" placeholder="Ninfa, Adulto"></div></div>' +
+      '<div class="fr" id="vs"><div class="f"><label>Nivel máximo de severidad</label><input type="number" min="1" max="5" name="Escala" value="' + (x.Escala || 3) + '"></div><div></div></div>' +
+      '<div class="fr"><div class="f"><label>Nombre corto (mapas de calor)</label><input type="text" name="Corto" maxlength="8" value="' + esc(x.Corto) + '"></div><div class="f"><label>Ayuda para el monitoreador</label><input type="text" name="Ayuda" maxlength="300" value="' + esc(x.Ayuda) + '"></div></div>' +
+      (v ? '<div class="banner warn small">Si el cultivo ya tiene datos cargados, no se puede cambiar «cómo se mide». Cree una variable nueva y dé de baja la anterior.</div>' : ''),
+      botones: [{ txt: 'Cancelar' }, { txt: nuevo ? 'Agregar' : 'Guardar', cls: 'pri', cierra: false, fn: async function (cc) {
+        const d = leerForm(cc.body); d.Columnas = d.Columnas.split(',').map(function (s) { return s.trim(); }).filter(Boolean); d.CultivoID = self.cid; if (v) d.ID = v.ID;
+        try { await apiA('apiGuardar', 'variables', d); UI.toast('Guardado.', 'ok'); cc.cerrar(); self.cargar(); } catch (e) { falla(e); }
+      } }] });
+    const ver = function () { const t = $('#vt', c.el).value; $('#vm', c.el).style.display = t === 'matriz' ? '' : 'none'; $('#vs', c.el).style.display = t === 'severidad' ? '' : 'none'; };
+    $('#vt', c.el).onchange = ver; ver();
+  },
+  clonar() {
+    const self = this, otros = this.cultivos.filter(function (c) { return c.ID !== self.cid && c.variables > 0; });
+    if (this.vars.length) return UI.toast('Solo se puede copiar a un cultivo sin variables.', 'bad');
+    if (!otros.length) return UI.toast('No hay otro cultivo con protocolo para copiar.', 'bad');
+    UI.modal({ titulo: 'Copiar protocolo', html: '<p class="small muted">Se copian las variables activas del cultivo elegido. Después puede editarlas.</p><div class="f"><label>Copiar desde</label><select name="o">' + opcionesSel(otros, '') + '</select></div>',
+      botones: [{ txt: 'Cancelar' }, { txt: 'Copiar', cls: 'pri', cierra: false, fn: async function (c) {
+        try { const r = await apiA('apiClonarProtocolo', leerForm(c.body).o, self.cid); UI.toast(r.copiadas + ' variables copiadas.', 'ok'); c.cerrar(); self.cargar(); } catch (e) { falla(e); }
+      } }] });
+  }
+};
+
+/* ============================= ALERTAS ============================= */
+Vistas.alertas = {
+  solo: true,
+  async render(el) {
+    el.innerHTML = UI.cargando();
+    let lista;
+    try { lista = await apiA('apiAlertas', this.solo); } catch (e) { el.innerHTML = ''; return falla(e); }
+    const self = this;
+    el.innerHTML = '<div class="hd-row"><div style="flex:1"><div class="eyebrow">Plagas críticas</div><h1 style="margin:0">Alertas</h1><p class="lead">Se generan solas cuando un monitoreador registra una plaga marcada como crítica (por ejemplo HLB). También llegan por correo.</p></div>' +
+      '<div class="f" style="margin:0"><select id="als"><option value="1">Pendientes</option><option value="0">Todas</option></select></div></div>' +
+      '<div class="card">' + (lista.length ? '<div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Plaga</th><th>Lote</th><th>Plantas</th><th>Detalle</th><th>Estado</th><th></th></tr></thead><tbody>' +
+        lista.map(function (a) {
+          return '<tr><td class="nowrap small">' + fmtFechaHora(a.FechaHora) + '</td><td><b>' + esc(a.PlagaNombre) + '</b></td><td>' + esc(a.LoteNombre) + '</td><td>' + esc(a.Plantas) + '</td><td class="small">' + esc(a.Detalle) + (a.Nota ? '<div class="muted">Nota: ' + esc(a.Nota) + '</div>' : '') + '</td>' +
+            '<td><span class="pill ' + (a.Estado === 'Nueva' ? 'dan' : 'ok') + '">' + esc(a.Estado) + '</span></td><td style="text-align:right">' + (a.Estado === 'Nueva' ? '<button class="btn sm pri" data-at="' + esc(a.ID) + '">Marcar atendida</button>' : '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : UI.vacio(self.solo ? 'No hay alertas pendientes. 👍' : 'Todavía no hubo alertas.')) + '</div>';
+    $('#als', el).value = this.solo ? '1' : '0';
+    $('#als', el).onchange = function () { self.solo = this.value === '1'; self.render(el); };
+    $$('[data-at]', el).forEach(function (b) {
+      b.onclick = function () {
+        UI.modal({ titulo: 'Marcar alerta como atendida', html: '<div class="f"><label>¿Qué se hizo? (opcional)</label><textarea name="nota" maxlength="300" placeholder="Ej.: se tomó muestra y se envió al laboratorio"></textarea></div>',
+          botones: [{ txt: 'Cancelar' }, { txt: 'Guardar', cls: 'pri', cierra: false, fn: async function (c) { try { await apiA('apiAtenderAlerta', b.dataset.at, leerForm(c.body).nota); c.cerrar(); self.render(el); } catch (e) { falla(e); } } }] });
+      };
+    });
+  }
+};
+
+/* ============= ANÁLISIS, MAPAS DE CALOR E INFORMES ============= */
+function resumenFiltros(F, sectores, lotes) {
+  const p = [];
+  if (F.desde || F.hasta) p.push('Período: ' + (F.desde ? fmtFecha(F.desde) : 'inicio') + ' a ' + (F.hasta ? fmtFecha(F.hasta) : 'hoy'));
+  const s = sectores.filter(function (x) { return x.ID === F.sectorId; })[0]; if (s) p.push('Sector: ' + s.Nombre);
+  if (F.loteIds.length) p.push('Lotes: ' + lotes.filter(function (l) { return F.loteIds.indexOf(l.ID) >= 0; }).map(function (l) { return l.Nombre; }).join(', '));
+  if (F.estado !== 'Todos') p.push('Estado: ' + F.estado + 's');
+  return p.length ? p.join(' · ') : 'Sin filtros (todos los datos)';
+}
+
+Vistas.analisis = {
+  F: { desde: '', hasta: '', sectorId: '', cultivoId: '', loteIds: [], estado: 'Todos', cargadoPor: '', catMapa: '' },
+  A: null, tab: 'resumen', lineas: [], mapa: null, ctx: null,
+  destruir() { if (this.mapa) { try { this.mapa.remove(); } catch (e) { } this.mapa = null; } },
+
+  async render(el) {
+    this.destruir(); el.innerHTML = UI.cargando();
+    try {
+      const r = await Promise.all([apiA('apiListar', 'sectores'), apiA('apiListar', 'lotes'), apiA('apiListar', 'usuarios'), apiA('apiListar', 'cultivos')]);
+      this.ctx = { sectores: r[0], lotes: r[1], usuarios: r[2], cultivos: r[3] };
+    } catch (e) { el.innerHTML = ''; return falla(e); }
+    const self = this, F = this.F;
+    el.innerHTML = '<div class="hd"><div class="eyebrow">Resultados</div><h1>Análisis y mapas de calor</h1>' +
+      '<p class="lead">Elija qué datos mirar (fechas, sector, lotes…) y vea la incidencia por categoría, los mapas de calor y la evolución. Con un botón genera el informe PDF.</p></div>' +
+      '<div class="card"><div class="chips" id="rapidos" style="margin-bottom:10px"><button class="chip" data-p="30">Últimos 30 días</button><button class="chip" data-p="90">Últimos 90 días</button><button class="chip" data-p="anio">Este año</button><button class="chip" data-p="todo">Todo</button></div>' +
+      '<div class="filters"><div class="f"><label>Desde</label><input type="date" id="fd" value="' + F.desde + '"></div><div class="f"><label>Hasta</label><input type="date" id="fh" value="' + F.hasta + '"></div>' +
+      '<div class="f"><label>Sector</label><select id="fs">' + opcionesSel(this.ctx.sectores, F.sectorId, 'Todos los sectores') + '</select></div>' +
+      '<div class="f"><label>Cultivo</label><select id="fcu">' + opcionesSel(this.ctx.cultivos.filter(function (c) { return c.Activo === 'SI'; }), F.cultivoId, 'El de más datos') + '</select></div>' +
+      '<div class="f"><label>Estado</label><select id="fe"><option>Todos</option><option>Cerrado</option><option>Abierto</option></select></div>' +
+      '<div class="f"><label>Cargado por</label><select id="fc">' + this.ctx.usuarios.map(function (u) { return '<option value="' + esc(u.Email) + '"' + (u.Email === F.cargadoPor ? ' selected' : '') + '>' + esc(u.Nombre) + '</option>'; }).join('').replace(/^/, '<option value="">Todos</option>') + '</select></div></div>' +
+      '<div class="f"><label>Lotes <span class="muted">(sin elegir ninguno = todos)</span></label><div class="chips" id="flotes"></div></div>' +
+      '<button class="btn pri" id="aplicar">Aplicar filtros</button></div><div id="res" style="margin-top:16px"></div>';
+    $('#fe', el).value = F.estado;
+    const pintarLotes = function () {
+      const ls = self.ctx.lotes.filter(function (l) { return l.Activo === 'SI' && (!F.sectorId || l.SectorID === F.sectorId); });
+      $('#flotes', el).innerHTML = ls.length ? ls.map(function (l) { return '<button class="chip' + (F.loteIds.indexOf(l.ID) >= 0 ? ' on' : '') + '" data-l="' + l.ID + '">' + esc(l.Nombre) + '</button>'; }).join('') : '<span class="muted small">No hay lotes en este sector.</span>';
+      $$('[data-l]', el).forEach(function (b) { b.onclick = function () { const i = F.loteIds.indexOf(b.dataset.l); if (i >= 0) F.loteIds.splice(i, 1); else F.loteIds.push(b.dataset.l); b.classList.toggle('on'); }; });
+    };
+    pintarLotes();
+    $('#fs', el).onchange = function () { F.sectorId = this.value; F.loteIds = []; pintarLotes(); };
+    $$('#rapidos [data-p]', el).forEach(function (b) {
+      b.onclick = function () {
+        const hoy = hoyLocal(), d = new Date();
+        if (b.dataset.p === 'todo') { F.desde = ''; F.hasta = ''; }
+        else if (b.dataset.p === 'anio') { F.desde = d.getFullYear() + '-01-01'; F.hasta = hoy; }
+        else { const x = new Date(d.getTime() - Number(b.dataset.p) * 86400000); F.desde = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); F.hasta = hoy; }
+        $('#fd', el).value = F.desde; $('#fh', el).value = F.hasta; self.ejecutar();
+      };
+    });
+    $('#aplicar', el).onclick = function () { F.desde = $('#fd', el).value; F.hasta = $('#fh', el).value; F.sectorId = $('#fs', el).value; if (F.cultivoId !== $('#fcu', el).value) { F.cultivoId = $('#fcu', el).value; F.catMapa = ''; self.lineas = []; } F.estado = $('#fe', el).value; F.cargadoPor = $('#fc', el).value; self.ejecutar(); };
+    this.ejecutar();
+  },
+
+  async ejecutar() {
+    const res = $('#res'); if (!res) return;
+    this.destruir(); res.innerHTML = UI.cargando('Calculando…');
+    try { this.A = await apiA('apiAnalisis', this.F); } catch (e) { res.innerHTML = ''; return falla(e); }
+    const A0 = this.A;
+    if (A0.cultivoId) { this.F.cultivoId = A0.cultivoId; const sel = $('#fcu'); if (sel) sel.value = A0.cultivoId; }
+    this.F.catMapa = A0.filtros.catMapa;
+    this.lineas = this.lineas.filter(function (id) { return A0.cats.some(function (c) { return c.id === id; }); });
+    if (!this.lineas.length) this.lineas = A0.cats.slice(0, 3).map(function (c) { return c.id; });
+    this.pintar();
+  },
+
+  pintar() {
+    const A = this.A, res = $('#res'), self = this; if (!res) return;
+    this.destruir();
+    if (!A.kpis.plantas) { res.innerHTML = '<div class="card">' + UI.vacio('No hay datos cargados con esos filtros. Pruebe ampliar el período o quitar el sector/lote.') + '</div>'; return; }
+    const k = A.kpis;
+    res.innerHTML = '<div class="kpis"><div class="kpi acc"><div class="n">' + k.monitoreos + '</div><div class="l">Monitoreos</div></div><div class="kpi"><div class="n">' + k.plantas + '</div><div class="l">Plantas relevadas</div></div>' +
+      '<div class="kpi"><div class="n">' + k.lotes + '</div><div class="l">Lotes</div></div><div class="kpi"><div class="n">' + esc(A.cultivoNombre) + '</div><div class="l">Cultivo</div></div><div class="kpi"><div class="n" style="font-size:17px;padding-top:8px">' + fmtFecha(k.desde) + (k.hasta !== k.desde ? '<br>' + fmtFecha(k.hasta) : '') + '</div><div class="l">Período con datos</div></div></div>' +
+      '<div class="row" style="margin:14px 0"><button class="btn pri" id="bpdf">📄 Generar informe PDF</button><button class="btn out" id="bkml">🌍 Exportar KML (Google Earth)</button><button class="btn out" id="bcsv">📊 Exportar datos (CSV)</button></div>' +
+      '<div class="tabs" id="tabs"><button class="tab" data-t="resumen">Resumen</button><button class="tab" data-t="calor">Mapa de calor por lote</button><button class="tab" data-t="evol">Evolución</button><button class="tab" data-t="mapa">Mapa geográfico</button><button class="tab" data-t="mons">Monitoreos</button></div><div id="tabc"></div>';
+    $$('#tabs .tab', res).forEach(function (t) { t.onclick = function () { self.tab = t.dataset.t; self.pintarTab(); }; });
+    $('#bpdf', res).onclick = function () { self.informe(); };
+    $('#bkml', res).onclick = function () { self.exportar('apiExportarKML', 'KML listo', 'Se exportaron <b>{n}</b> lotes con su ubicación y color según la incidencia.', 'lotes'); };
+    $('#bcsv', res).onclick = function () { self.exportar('apiExportarCSV', 'Datos exportados', 'Se exportaron <b>{n}</b> filas (una por planta) para abrir en Excel.', 'filas'); };
+    this.pintarTab();
+  },
+
+  pintarTab() {
+    const A = this.A, box = $('#tabc'), self = this; if (!box) return;
+    this.destruir();
+    $$('#tabs .tab').forEach(function (t) { t.classList.toggle('on', t.dataset.t === self.tab); });
+    const cats = A.cats, nomCat = function (id) { return cats.filter(function (c) { return c.id === id; })[0].nombre; };
+    const cab = cats.map(function (c) { return { txt: c.corto, titulo: c.nombre }; });
+    const leyenda = '<p class="small muted">' + cats.map(function (c) { return c.corto + ' = ' + c.nombre; }).join(' · ') + '</p>';
+    if (this.tab === 'resumen') {
+      const e = A.enemigos;
+      box.innerHTML = '<div class="card"><h3>Incidencia por categoría</h3><p class="small muted">% de repeticiones (brotes u hojas) con presencia, sobre todas las plantas filtradas.</p>' +
+        Graf.barras(cats.map(function (c) { return { label: c.nombre, pct: A.global[c.id] }; })) + '</div>' +
+        (A.alertas && A.alertas.length ? '<div class="card" style="margin-top:14px"><h3>⚠ Alertas de plagas críticas</h3>' + A.alertas.map(function (a) { return '<div class="banner bad small"><b>' + esc(a.PlagaNombre) + '</b> en ' + esc(a.LoteNombre) + ' · plantas ' + esc(a.Plantas) + ' · ' + esc(a.Estado) + '</div>'; }).join('') + '</div>' : '') +
+        (e.length ? '<div class="card" style="margin-top:14px"><h3>Conteos promedio por planta</h3><div class="kpis">' + e.map(function (x) { return '<div class="kpi"><div class="n">' + x.prom + '</div><div class="l">' + esc(x.nombre) + '</div></div>'; }).join('') + '</div></div>' : '');
+    } else if (this.tab === 'calor') {
+      box.innerHTML = '<div class="card"><h3>Mapa de calor: lote × categoría</h3><p class="small muted">Cada celda es el % de incidencia. Toque una celda para ver el detalle del lote.</p>' +
+        Graf.calor(cab, A.porLote.map(function (l) { return { label: l.nombre, vals: cats.map(function (c) { return l.vals[c.id]; }) }; }), { clic: true }) + leyenda + '</div>';
+      $$('td.c', box).forEach(function (td) {
+        td.onclick = function () {
+          const l = A.porLote[Number(td.dataset.i)];
+          UI.modal({ titulo: l.nombre, html: '<p class="muted small">' + esc(l.sector) + ' · ' + l.plantas + ' plantas en ' + l.monitoreos + ' monitoreo(s) · último ' + fmtFecha(l.ultima) + '</p>' + Graf.barras(cats.map(function (c) { return { label: c.nombre, pct: l.vals[c.id] }; })), botones: [{ txt: 'Cerrar', cls: 'pri' }] });
+        };
+      });
+    } else if (this.tab === 'evol') {
+      box.innerHTML = '<div class="card"><h3>Evolución en el tiempo</h3><p class="small muted">Un punto por fecha de monitoreo. Elija qué categorías ver.</p><div class="chips" id="lin" style="margin-bottom:10px"></div><div id="graf"></div></div>';
+      const dib = function () {
+        $('#lin', box).innerHTML = cats.map(function (c, i) { return '<button class="chip' + (self.lineas.indexOf(c.id) >= 0 ? ' on' : '') + '" data-c="' + c.id + '" style="' + (self.lineas.indexOf(c.id) >= 0 ? 'background:' + Color.paleta[i % Color.paleta.length] + ';border-color:' + Color.paleta[i % Color.paleta.length] : '') + '">' + esc(c.nombre) + '</button>'; }).join('');
+        $('#graf', box).innerHTML = Graf.lineas(A.serie, cats, self.lineas);
+        $$('[data-c]', box).forEach(function (b) { b.onclick = function () { const i = self.lineas.indexOf(b.dataset.c); if (i >= 0) self.lineas.splice(i, 1); else self.lineas.push(b.dataset.c); dib(); }; });
+      };
+      dib();
+    } else if (this.tab === 'mapa') {
+      box.innerHTML = '<div class="card"><div class="row"><h3 style="margin:0;flex:1">Mapa geográfico de incidencia</h3><div class="f" style="margin:0;min-width:230px"><select id="cm">' + cats.map(function (c) { return '<option value="' + c.id + '"' + (c.id === self.F.catMapa ? ' selected' : '') + '>' + esc(c.nombre) + '</option>'; }).join('') + '</select></div></div>' +
+        '<p class="small muted">El color de cada lote indica el % de incidencia de la categoría elegida (verde = baja, rojo = alta).</p><div id="mapbox"></div><div class="scale"><span>0 %</span><i></i><span>100 %</span></div></div>';
+      $('#cm', box).onchange = function () { self.F.catMapa = this.value; self.pintarMapa(); };
+      this.pintarMapa();
+    } else {
+      box.innerHTML = '<div class="card"><h3>Mapa de calor: monitoreo × categoría</h3><p class="small muted">Toque una fila para abrir el detalle del monitoreo.</p>' +
+        Graf.calor(cab, A.monitoreos.map(function (m) { return { label: fmtFecha(m.fecha) + ' · ' + m.lote, vals: cats.map(function (c) { return m.vals[c.id]; }) }; }), { clic: true }) + leyenda + '</div>';
+      $$('td.c', box).forEach(function (td) { td.onclick = function () { Vistas.monitoreos.detalle(A.monitoreos[Number(td.dataset.i)].id); }; });
+    }
+  },
+
+  pintarMapa() {
+    const A = this.A, box = $('#mapbox'), cat = this.F.catMapa; if (!box) return;
+    this.destruir();
+    const pts = A.porLote.filter(function (l) { return l.lat !== null; });
+    if (!pts.length) { box.innerHTML = '<div class="banner warn">Los lotes de este análisis todavía no tienen ubicación GPS. Cárguela en «Lotes y mapa».</div>'; return; }
+    if (!Mapa.ok()) { box.innerHTML = Mapa.sinMapa() + '<div class="tw"><table class="tbl"><thead><tr><th>Lote</th><th>%</th><th></th></tr></thead><tbody>' + pts.map(function (l) { return '<tr><td>' + esc(l.nombre) + '</td><td>' + fmtPct(l.vals[cat]) + '</td><td><a target="_blank" rel="noopener" href="' + Mapa.earth(l.lat, l.lng) + '">Google Earth</a></td></tr>'; }).join('') + '</tbody></table></div>'; return; }
+    box.innerHTML = '<div class="map l" id="mapa"></div>';
+    const m = this.mapa = Mapa.crear($('#mapa', box), CENTRO_BV, 11), todos = [];
+    pts.forEach(function (l) {
+      const v = l.vals[cat], col = v === null || v === undefined ? '#8B968F' : Color.escala(v);
+      const pop = '<b>' + esc(l.nombre) + '</b><br>' + esc(l.sector) + '<br>Incidencia: <b>' + fmtPct(v) + '</b> · ' + l.plantas + ' plantas<br><a target="_blank" rel="noopener" href="' + Mapa.earth(l.lat, l.lng) + '">🌍 Google Earth</a>';
+      if (l.poligono) L.polygon(l.poligono, { color: col, weight: 2, fillColor: col, fillOpacity: .55 }).addTo(m).bindPopup(pop);
+      [260, 170, 90].forEach(function (r, i) { L.circle([l.lat, l.lng], { radius: r, stroke: false, fillColor: col, fillOpacity: [.16, .22, .34][i] }).addTo(m); });
+      L.circleMarker([l.lat, l.lng], { radius: 9, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1 }).addTo(m).bindPopup(pop);
+      L.marker([l.lat, l.lng], { icon: L.divIcon({ html: '<div style="background:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.4);transform:translate(-50%,-34px)">' + esc(l.nombre) + ' · ' + fmtPct(v) + '</div>', className: '', iconSize: [0, 0] }) }).addTo(m);
+      todos.push([l.lat, l.lng]);
+    });
+    m.fitBounds(todos, { padding: [50, 50], maxZoom: 16 });
+  },
+
+  informe() {
+    const self = this, F = this.F, ctx = this.ctx;
+    UI.modal({ titulo: 'Generar informe PDF', html:
+      '<p class="small muted">' + esc(resumenFiltros(F, ctx.sectores, ctx.lotes)) + '</p>' +
+      '<div class="f"><label>Título del informe</label><input type="text" name="titulo" maxlength="80" value="Informe de monitoreo fitosanitario"></div>' +
+      '<div class="f"><label>Enviar por correo a (opcional)</label><input type="email" name="correo" placeholder="jefe.sector@inta.gob.ar"><div class="ay">Si lo deja vacío, el informe solo se guarda en Drive.</div></div>' +
+      '<p class="small muted">Incluye incidencia por categoría, mapas de calor, evolución, ubicación de los lotes y observaciones. Se guarda en Drive en <b>Informes / año / mes</b>.</p>',
+      botones: [{ txt: 'Cancelar' }, { txt: 'Generar informe', cls: 'pri', cierra: false, fn: async function (c) {
+        const d = leerForm(c.body);
+        c.body.innerHTML = UI.cargando('Generando informe… puede tardar unos segundos'); c.q('.mf').remove();
+        try {
+          const r = await apiA('apiGenerarInforme', F, { titulo: d.titulo, correo: d.correo });
+          c.body.innerHTML = '<div class="center"><div style="font-size:42px">✅</div><h3>Informe generado</h3><p class="small muted">' + esc(r.nombre) + '</p>' +
+            (r.enviado ? '<p>Enviado a <b>' + esc(r.enviado) + '</b>.</p>' : '') + (r.aviso ? '<div class="banner warn">' + esc(r.aviso) + '</div>' : '') +
+            '<div class="row" style="justify-content:center"><button class="btn sec" id="bj">⬇ Descargar</button><button class="btn out" id="bb">Ir a la biblioteca</button><button class="btn pri" id="bo">Listo</button></div></div>';
+          c.q('#bj').onclick = function () { bajarArchivo(r.id); }; c.q('#bo').onclick = function () { c.cerrar(); };
+          c.q('#bb').onclick = function () { c.cerrar(); Nav.ir('informes'); };
+        } catch (e) { falla(e); c.cerrar(); }
+      } }] });
+  },
+
+  async exportar(fn, titulo, txt, campo) {
+    try {
+      UI.toast('Generando archivo…');
+      const r = await apiA(fn, this.F);
+      UI.modal({ titulo: titulo, html: '<p>' + txt.replace('{n}', r[campo]) + '</p><p class="small muted">Quedó guardado en Drive. ' + (fn === 'apiExportarKML' ? 'Para verlo: abra Google Earth → Archivo → Abrir/Importar archivo KML.' : '') + '</p>',
+        botones: [{ txt: 'Cerrar' }, { txt: '⬇ Descargar', cls: 'pri', cierra: false, fn: function () { bajarArchivo(r.id); } }] });
+    } catch (e) { falla(e); }
+  }
+};
+
+/* ---------------- Biblioteca de informes (año / mes) ---------------- */
+Vistas.informes = {
+  async render(el) {
+    el.innerHTML = UI.cargando();
+    let r;
+    try { r = await apiA('apiListarBiblioteca'); } catch (e) { el.innerHTML = ''; return falla(e); }
+    const kb = function (n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; };
+    const fila = function (a) {
+      return '<div class="arch"><div><b>' + esc(a.nombre) + '</b><div class="small muted">' + fmtFechaHora(a.fecha.replace(' ', 'T')) + ' · ' + kb(a.tam) + '</div></div><div class="row">' +
+        '<button class="btn sm sec" data-dl="' + a.id + '">⬇ Descargar</button><button class="btn sm out" data-mail="' + a.id + '">✉ Enviar</button></div></div>';
+    };
+    el.innerHTML = '<div class="hd-row"><div style="flex:1"><div class="eyebrow">Informes</div><h1 style="margin:0">Biblioteca de informes</h1><p class="lead">Ordenados automáticamente por año y mes en Google Drive.</p></div>' +
+      '<button class="btn pri" id="nuevo">+ Generar informe nuevo</button></div>' +
+      '<div class="biblio">' + (r.informes.length ? r.informes.map(function (a, i) {
+        return '<div class="card" style="margin-bottom:12px"><h3>📁 ' + esc(a.anio) + '</h3>' + a.meses.map(function (m, j) {
+          return '<details' + (i === 0 && j === 0 ? ' open' : '') + '><summary>' + esc(m.mes) + ' <span class="muted small">(' + m.archivos.length + ')</span></summary>' +
+            (m.archivos.length ? m.archivos.map(fila).join('') : '<div class="arch muted small">Sin archivos este mes.</div>') + '</details>';
+        }).join('') + '</div>';
+      }).join('') : '<div class="card">' + UI.vacio('Todavía no hay informes. Se crean al cerrar un monitoreo o desde «Análisis».') + '</div>') +
+      '<div class="card"><h3>🌍 Mapas (KML para Google Earth)</h3>' + (r.mapas.length ? r.mapas.map(fila).join('') : '<div class="muted small">Todavía no exportó mapas. Hágalo desde «Lotes y mapa» o «Análisis».</div>') + '</div></div>';
+    $('#nuevo', el).onclick = function () { Nav.ir('analisis'); };
+    $$('[data-dl]', el).forEach(function (b) { b.onclick = function () { bajarArchivo(b.dataset.dl); }; });
+    $$('[data-mail]', el).forEach(function (b) { b.onclick = function () { enviarArchivoPorMail(b.dataset.mail); }; });
+  }
+};
+
+
+/* ============= SISTEMA: ESTADO, RESPALDOS Y BITÁCORA ============= */
+Vistas.sistema = {
+  tab: 'bitacora', q: '',
+  async render(el) {
+    const sa = tieneRol('superadmin');
+    if (!sa) this.tab = 'bitacora';
+    el.innerHTML = '<div class="hd"><div class="eyebrow">Administración</div><h1>Sistema y bitácora</h1><p class="lead">Cada acción importante (altas, cierres, correcciones, accesos denegados) queda registrada: quién, cuándo y qué.</p></div>' +
+      '<div class="tabs"><button class="tab" data-t="bitacora">Bitácora de auditoría</button>' + (sa ? '<button class="tab" data-t="estado">Estado y respaldos</button>' : '') + '</div><div id="cont"></div>';
+    const self = this;
+    $$('.tab', el).forEach(function (t) { t.onclick = function () { self.tab = t.dataset.t; self.pintar(); }; });
+    this.pintar();
+  },
+  pintar() {
+    $$('.tab').forEach(function (t) { t.classList.toggle('on', t.dataset.t === Vistas.sistema.tab); });
+    if (this.tab === 'estado') this.estado(); else this.bitacora();
+  },
+  async bitacora() {
+    const cont = $('#cont'); cont.innerHTML = UI.cargando();
+    let lista;
+    try { lista = await apiA('apiBitacora', 200); } catch (e) { cont.innerHTML = ''; return falla(e); }
+    const self = this;
+    cont.innerHTML = '<div class="card"><div class="f"><label>Buscar</label><input type="search" id="bq" placeholder="Usuario, acción o detalle" value="' + esc(this.q) + '"></div><div class="tw" id="bt"></div></div>';
+    const pintar = function () {
+      const q = self.q.toLowerCase();
+      const ls = lista.filter(function (x) { return !q || (x.usuario + ' ' + x.accion + ' ' + x.detalle).toLowerCase().indexOf(q) >= 0; });
+      $('#bt').innerHTML = ls.length ? '<table class="tbl"><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead><tbody>' +
+        ls.map(function (x) {
+          const alerta = /DENEGADO|NO_AUTORIZADO|ERROR/.test(x.accion);
+          return '<tr><td class="nowrap small">' + fmtFechaHora(x.fecha.replace(' ', 'T')) + '</td><td class="small">' + esc(x.usuario) + '</td><td><span class="pill ' + (alerta ? 'dan' : 'info') + '">' + esc(x.accion) + '</span></td><td class="small">' + esc(x.detalle) + '</td></tr>';
+        }).join('') + '</tbody></table>' : UI.vacio('Sin movimientos para mostrar.');
+    };
+    $('#bq').oninput = function () { self.q = this.value; pintar(); };
+    pintar();
+  },
+  async estado() {
+    const cont = $('#cont'); cont.innerHTML = UI.cargando();
+    let s, cfg;
+    try { s = await apiA('apiEstadoSistema'); cfg = await apiA('apiConfig'); } catch (e) { cont.innerHTML = ''; return falla(e); }
+    cont.innerHTML = '<div class="grid g2"><div class="card"><h3>Datos guardados</h3><div class="tw"><table class="tbl"><tbody>' +
+      Object.keys(s.filas).map(function (k) { return '<tr><td>' + esc(k) + '</td><td class="right"><b>' + s.filas[k] + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<p class="small muted">Versión del sistema: ' + esc(s.version) + '</p></div>' +
+      '<div class="card"><h3>Respaldos y correo</h3><p>Último respaldo automático: <b>' + esc(s.ultimoRespaldo) + '</b></p>' +
+      '<p class="small muted">Cada día de madrugada se guarda una copia completa de la base en Drive (carpeta «Respaldos», por año y mes) y se conservan los últimos 30 días.</p>' +
+      '<button class="btn sec" id="resp">💾 Respaldar ahora</button>' +
+      (s.cuotaCorreo !== null ? '<p class="small muted" style="margin-top:12px">Correos que aún puede enviar hoy: <b>' + s.cuotaCorreo + '</b></p>' : '') +
+      (s.carpeta ? '<p class="small"><a target="_blank" rel="noopener" href="' + esc(s.carpeta) + '">📁 Abrir la carpeta en Drive</a></p>' : '') + '</div></div>' +
+      '<div class="card" style="margin-top:14px"><h3>Institución, logo y alertas</h3><div class="f"><label>Nombre de la institución</label><input type="text" id="inst" maxlength="80" value="' + esc(cfg.institucion) + '"></div>' +
+      '<div class="f"><label>Logo (enlace https a una imagen)</label><input type="url" id="logo" maxlength="300" value="' + esc(cfg.logo || '') + '" placeholder="https://…/logo.png"><div class="ay">Se muestra arriba a la izquierda. Mantiene los colores institucionales.</div></div>' +
+      '<div class="f"><label>Correos extra para ALERTAS (hasta 5, separados por coma)</label><input type="text" id="alc" value="' + esc(cfg.alertaCorreos || '') + '"><div class="ay">Además del jefe de sector y del Super Administrador.</div></div><button class="btn pri" id="ginst">Guardar</button></div>' +
+      (s.urlApp ? '<div class="card" style="margin-top:14px"><h3>Enlace del sistema</h3><p class="small muted">Compártalo con el equipo (y guárdelo como acceso directo en el celular).</p><div class="row" style="flex-wrap:nowrap"><input type="text" readonly value="' + esc(s.urlApp) + '" id="url"><button class="btn sec" id="copiar">Copiar</button></div></div>' : '');
+    $('#resp').onclick = async function () {
+      this.disabled = true;
+      try { const r = await apiA('apiRespaldarAhora'); UI.toast('Respaldo creado: ' + r.nombre, 'ok'); Vistas.sistema.estado(); } catch (e) { falla(e); this.disabled = false; }
+    };
+    $('#ginst').onclick = async function () {
+      try { await apiA('apiGuardarConfig', { institucion: $('#inst').value, logo: $('#logo').value, alertaCorreos: $('#alc').value }); window.__INST__ = $('#inst').value; App.ses.institucion = $('#inst').value; App.ses.logo = $('#logo').value; Sesion.guardar(App.ses); UI.toast('Guardado.', 'ok'); } catch (e) { falla(e); }
+    };
+    const cp = $('#copiar'); if (cp) cp.onclick = function () { const u = $('#url'); u.select(); try { document.execCommand('copy'); UI.toast('Enlace copiado.', 'ok'); } catch (e) { UI.toast('Seleccione el texto y copie manualmente.'); } };
+  }
+};
+
+
+/* ======================== ARRANQUE DE LA APLICACIÓN ======================== */
+(function () {
+  if (Red.enLinea()) api('apiInfo').then(function (i) { window.__INST__ = i.institucion; Store.set('inta_inst', i.institucion); }).catch(function () { });
+  else window.__INST__ = Store.get('inta_inst') || window.__INST__;
+  Outbox.migrar();
+  // La app de campo se instala y trabaja sin señal gracias al service worker.
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0 && window.APP_CONFIG) navigator.serviceWorker.register('sw.js').catch(function () { });
+  const arrancar = function () { Auth.iniciar(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
+})();
+
+</script>
+
+</body>
+</html>
